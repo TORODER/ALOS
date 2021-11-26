@@ -1,15 +1,15 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png" />
-  <HelloWorld msg="Hello Vue 3.0 + Vite" />
+
+<div>
+    <button @click="add">HelloWorld {{acc}}</button>
+</div>
+
 </template>
 
-<script>
-import HelloWorld from './components/HelloWorld.vue'
+<script setup>import { ref } from '@vue/reactivity';
 
-export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
+let acc=ref(0);
+function add(){
+    acc.value++;
 }
 </script>
