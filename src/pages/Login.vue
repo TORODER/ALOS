@@ -46,7 +46,7 @@ import { ref } from '@vue/reactivity';
 import { watch } from '@vue/runtime-core';
 import { useRouter } from 'vue-router';
 import { imagePath } from '../public';
-const backgroundImage = ref(`${imagePath}login-background-1.jpg`);
+const backgroundImage = ref(`${imagePath}background.jpg`);
 const userImage = ref(`${imagePath}user-image.jpg`);
 const account = ref("");
 let showPassword = ref(false);

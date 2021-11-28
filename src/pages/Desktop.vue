@@ -28,7 +28,7 @@
 <script setup lang="ts" >import { ref } from 'vue';
 import { imagePath } from '../public';
 
-const backgroundImage = ref(`${imagePath}login-background-1.jpg`);
+const backgroundImage = ref(`${imagePath}background.jpg`);
 </script>
 
 <style scoped lang="scss" >
