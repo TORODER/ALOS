@@ -106,7 +106,6 @@ function toOS() {
             border: 1px solid #0001;
 
             &.lock {
-                opacity: 0.8;
             }
             &.noshow {
                 opacity: 0;
