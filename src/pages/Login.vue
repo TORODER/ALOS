@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from '@vue/reactivity';
+import { reactive, ref } from '@vue/reactivity';
 import { watch } from '@vue/runtime-core';
 import { useRouter } from 'vue-router';
 import { imagePath } from '../public';
@@ -58,7 +58,6 @@ watch([account], ([account]) => {
 function toOS() {
     router.push("/desktop");
 }
-
 </script>
 
 <style lang="scss" scoped>
