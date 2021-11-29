@@ -1,0 +1,1 @@
+type Language="EN"|"ZH_CN";

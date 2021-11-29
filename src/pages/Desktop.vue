@@ -9,13 +9,18 @@
         <div class="desktop-windows-container"></div>
         <div class="desktop-system-ui-box">
             <div class="taskbar-box">
-                <div class="taskbar-content">
+                <div class="taskbar-content" @mousemove="taskbarMoveAnimation">
                     <div class="task-row">
-                        <div class="task">
-                            <img src="/public/images/nodejs.png" />
-                        </div>
-                        <div class="task">
-                            <img src="/public/images/vue.png" />
+                        <div
+                            class="task"
+                            :ref="(dom) => {
+                                console.log(dom);
+                                taskDoms[value.pid] = dom;
+                            }"
+                            :index="value.pid"
+                            v-for="value in windowTasks"
+                        >
+                            <img :src="appDescriptionMap.get(value.packageID)!.icon.taskbar" />
                         </div>
                     </div>
                     <div class="taskbar"></div>
@@ -25,10 +30,61 @@
     </div>
 </template>
 
-<script setup lang="ts" >import { ref } from 'vue';
+<script setup lang="ts" >
+import { reactive, ref } from 'vue';
+import { Task } from '../@types/task';
+import { ListenerEvent } from '../core/listener';
+import { taskManage, TaskManageEvent, TaskType } from '../core/task';
 import { imagePath } from '../public';
-
 const backgroundImage = ref(`${imagePath}background.jpg`);
+
+const appDescriptions: AppDescription[] = [
+    {
+        "icon": {
+            "taskbar": "/public/images/nodejs.png",
+        },
+        "name": {
+            "EN": "NodeJS",
+        },
+        "packageID": "com.nodejs"
+    },
+    {
+        "icon": {
+            "taskbar": "/public/images/vue.png",
+        },
+        "name": {
+            "EN": "Vue",
+        },
+        "packageID": "com.vue"
+    }
+];
+const appDescriptionMap: Map<string, AppDescription> = new Map(appDescriptions.map(e => [e.packageID, e]));
+
+appDescriptions.forEach((v, i) => {
+    setTimeout(() => {
+        taskManage.create(v, TaskType.window);
+        console.log("add");
+    }, i * 3000);
+});
+
+const windowTasks: Set<Task> = reactive(new Set());
+function onTaskManageEvent(v: ListenerEvent<TaskManageEvent, Task>) {
+    switch (v.event) {
+        case TaskManageEvent.add:
+            console.log("add", v.data);
+            windowTasks.add(v.data);
+            break;
+    }
+}
+taskManage.addListener(onTaskManageEvent);
+
+const taskDoms: Record<string, any> = {};
+
+function taskbarMoveAnimation(e: MouseEvent) {
+    // console.log(e.offsetX, e.offsetY);
+    // console.log(taskDoms, taskDoms.map(e => [e.offsetLeft, e.offsetTop]));
+}
+
 </script>
 
 <style scoped lang="scss" >
@@ -40,8 +96,7 @@ const backgroundImage = ref(`${imagePath}background.jpg`);
 
 $taskbarHeight: 20px;
 $taskBarMarginBottom: 10px;
-
-$taskSize: 70px;
+$taskSize: 60px;
 $taskMarginBottom: 10px;
 .desktop-box {
     & > .background-image {
@@ -73,30 +128,32 @@ $taskMarginBottom: 10px;
                     height: $taskbarHeight;
                     margin-bottom: 10px;
                     border: 1px solid #fff1;
+                    background-color: #fff6;
                     position: absolute;
                     left: 0;
                     right: 0;
                     bottom: 0;
                     z-index: 0;
                 }
-                .task-row { 
+                .task-row {
                     display: flex;
                     & > .task {
                         @include shadow-less;
-                        border: 1px solid #fff1;
+                        // border: 1px solid #fff1;
+                        // backdrop-filter: blur(10px);
+                        // padding: 10px;
+                        filter: drop-shadow(2px 4px 6px #0004);
                         position: relative;
                         width: $taskSize;
                         height: $taskSize;
                         border-radius: 15px;
-                        backdrop-filter: blur(10px);
                         margin: 0 10px;
-                        padding: 10px;
                         z-index: 1;
                         top: -($taskMarginBottom + $taskBarMarginBottom);
                         img {
                             width: 100%;
                             height: 100%;
-                            object-fit: cover;
+                            object-fit: contain;
                         }
                     }
                 }

@@ -1,0 +1,1 @@
+type Multilingual<T>=Record<Language,T>;
