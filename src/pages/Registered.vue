@@ -18,9 +18,10 @@
             <div class="input-box" :class="[showPassword ? 'show' : 'noshow']">
                 <input type="text" v-model="passwd" placeholder="密码" />
             </div>
-            <div class="space big"></div>
-            <div v-show="showErr">{{ err }}</div>
-            <div class="next-button" @click="login">
+            <div class="input-box" :class="[showPassword ? 'show' : 'noshow']">
+                <input type="text" v-model="emailcode" placeholder="邮箱验证码" />
+            </div>
+            <div class="next-button" @click="sendEmailCode">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     class="icon icon-tabler icon-tabler-arrow-narrow-right"
@@ -37,8 +38,9 @@
                     <line x1="15" y1="8" x2="19" y2="12" />
                 </svg>
             </div>
-
-            <div class="next-button" @click="toRegistered">
+            <div class="space big"></div>
+            <div v-show="showErr">{{err}}</div>
+            <div class="next-button" @click="">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     class="icon icon-tabler icon-tabler-arrow-narrow-right"
@@ -61,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from '@vue/reactivity';
+import { ref } from '@vue/reactivity';
 import { watch } from '@vue/runtime-core';
 import { useRouter } from 'vue-router';
 import { imagePath } from '../public';
@@ -75,21 +77,16 @@ let showPassword = ref(false);
 const router = useRouter();
 let err = ref("");
 let showErr = ref(false);
+let emailcode = ref("");
 
 watch(account, (account) => {
     showPassword.value = account.length > 0;
 });
 
 
-async function login() {
-    const data = await create(account.value, passwd.value);
-    if (data.code === 2000) {
-        console.log(data.code)
-        toOS()
-    } else {
-        err.value = describe(data.code).ZH_CN!;
-        showErr.value = true;
-    }
+
+async function sendEmailCode(){
+
 }
 
 
@@ -97,9 +94,7 @@ function toOS() {
     router.push("/desktop");
 }
 
-function toRegistered() {
-    router.push("/registered");
-}
+
 
 
 </script>
@@ -201,6 +196,7 @@ function toRegistered() {
                 object-fit: cover;
             }
         }
+        
     }
 }
 </style>

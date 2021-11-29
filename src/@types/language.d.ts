@@ -1,1 +1,1 @@
-type Multilingual<T>=Record<Language,T>;
+type Multilingual<T>=Partial<Record<Language,T>>;
