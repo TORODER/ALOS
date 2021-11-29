@@ -66,41 +66,33 @@ import { watch } from '@vue/runtime-core';
 import { useRouter } from 'vue-router';
 import { imagePath } from '../public';
 import create from '../core/api/login';
-import describe from '../core/api/describe';
+import apiCodeDescribe from '../core/api/describe';
+import { toDesktop, toRegistered } from '../router';
+import { getLocalLanguage } from '../core/language';
+
 const backgroundImage = ref(`${imagePath}background.jpg`);
 const userImage = ref(`${imagePath}user-image.jpg`);
 const account = ref("wst13362307472@163.com");
 const passwd = ref("Aa123456");
-let showPassword = ref(false);
-const router = useRouter();
+
+let showPassword = ref(account.value.length > 0);
 let err = ref("");
 let showErr = ref(false);
-
-watch(account, (account) => {
-    showPassword.value = account.length > 0;
-});
-
 
 async function login() {
     const data = await create(account.value, passwd.value);
     if (data.code === 2000) {
         console.log(data.code)
-        toOS()
+        toDesktop()
     } else {
-        err.value = describe(data.code).ZH_CN!;
+        err.value = getLocalLanguage(apiCodeDescribe(data.code));
         showErr.value = true;
     }
 }
 
-
-function toOS() {
-    router.push("/desktop");
-}
-
-function toRegistered() {
-    router.push("/registered");
-}
-
+watch(account, (account) => {
+    showPassword.value = account.length > 0;
+});
 
 </script>
 
