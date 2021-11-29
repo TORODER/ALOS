@@ -1,0 +1,14 @@
+{
+    "recommendations": [
+        "johnsoncodehk.volar",
+        "gruntfuggly.todo-tree",
+        "cweijan.vscode-redis-client",
+        "eg2.vscode-npm-script",
+        "oderwat.indent-rainbow",
+        "dbaeumer.vscode-eslint",
+        "usernamehw.errorlens",
+        "streetsidesoftware.code-spell-checker",
+        "coenraads.bracket-pair-colorizer-2",
+        "aaron-bond.better-comments"
+    ]
+}
