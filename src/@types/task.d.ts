@@ -1,4 +1,4 @@
-import { TaskType } from "../core/task";
+import { TaskType } from "../core/service/task";
 
 
 type PID = string;
@@ -9,6 +9,7 @@ interface Task {
     pid: PID,
     // * APP 包名
     // * [AppDescription.packageID]
-    packageID: string,
+    packageID: PackageID,
+    // * Task 类型
     type: TaskType
 }

@@ -1,6 +1,7 @@
 interface ListenerNotice<T> {
     (value: T): void
 }
+
 export class Listener<T>{
     private listeners: Set<ListenerNotice<T>>
 
@@ -32,8 +33,7 @@ export class Listener<T>{
 
 }
 
-
-export class ListenerEvent<E,T>{
+export class ListenerEvent<E, T>{
     event: E;
     data: T;
     constructor(event: E, data: T) {

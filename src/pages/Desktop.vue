@@ -12,7 +12,7 @@
                 <div
                     class="taskbar-content"
                     @mousemove="taskbarMoveAnimation"
-                    @mouseout.self="taskbarMoveAnimation(undefined)"
+                    @mouseleave.self="taskbarMoveAnimation(undefined)"
                 >
                     <div class="task-row">
                         <div
@@ -20,12 +20,12 @@
                             :ref="(e) => handelTaskDoms(e as any, dockElem.task)"
                             :key="dockElem.task.pid"
                             :style="{
-                                transform: `scale(${1 + dockElem.scale * .3}) translateY(${dockElem.scale * -15}px)`
+                                transform: `scale(${1 + dockElem.scale * scaleMax}) translateZ(0) translateY(${dockElem.scale * translateYMax}px)`
                             }"
                             v-for="[dockElemKey, dockElem] in dockElemMap"
                         >
                             <img
-                                :src="appDescriptionMap.get(dockElem.task.packageID)!.icon.taskbar"
+                                :src="osPackageManage.getAppDescription(dockElem.task.packageID)!.icon.taskbar"
                             />
                         </div>
                     </div>
@@ -39,45 +39,26 @@
 <script setup lang="ts" >
 import { reactive, ref } from 'vue';
 import { PID, PIDMap, Task } from '../@types/task';
-import { ListenerEvent } from '../core/listener';
-import { taskManage, TaskManageEvent, TaskType } from '../core/task';
-import { windowsManage } from '../core/window';
+import { osPackageManage } from '../core/service/os-package-manage';
+import { osTaskManage, TaskType } from '../core/service/task';
+import { windowsManage } from '../core/service/window';
 import { imagePath } from '../public';
 const backgroundImage = ref(`${imagePath}background.jpg`);
 const dockElemMap = windowsManage.dockElemMap;
-const appDescriptions: AppDescription[] = [
-    {
-        "icon": {
-            "taskbar": "/public/images/nodejs.png",
-        },
-        "name": {
-            "EN": "NodeJS",
-        },
-        "packageID": "com.nodejs"
-    },
-    {
-        "icon": {
-            "taskbar": "/public/images/vue.png",
-        },
-        "name": {
-            "EN": "Vue",
-        },
-        "packageID": "com.vue"
-    }
-];
-const appDescriptionMap: Map<string, AppDescription> = new Map(appDescriptions.map(e => [e.packageID, e]));
+const scaleMax = .5;
+const translateYMax = -8;
 
-appDescriptions.forEach((v, i) => {
-    setTimeout(() => {
-        taskManage.create(v, TaskType.window);
-        taskManage.create(v, TaskType.window);
-        taskManage.create(v, TaskType.window);
-    }, i * 3000);
-});
+// appDescriptions.forEach((v, i) => {
+//     setTimeout(() => {
+//         osTaskManage.create(v, TaskType.window);
+//         osTaskManage.create(v, TaskType.window);
+//         osTaskManage.create(v, TaskType.window);
+//     }, i * 3000);
+// });
 
 // setTimeout(() => {
-//     const t = Array.from(taskManage.selectTasksFromTaskType(TaskType.window).values());
-//     taskManage.remove(t[0]!.pid);
+//     const t = Array.from(osTaskManage.selectTasksFromTaskType(TaskType.window).values());
+//     osTaskManage.remove(t[0]!.pid);
 //     console.log(["delete", t[0]!.pid]);
 // }, 1000 * 10)
 
@@ -98,7 +79,7 @@ function taskbarMoveAnimation(e: MouseEvent | undefined) {
         if (e != undefined) {
             const domRect = elem.getBoundingClientRect();
             const centerOffset = domRect.left + domRect.width / 2;
-            domElem.scale = Math.max(1 - Math.abs((centerOffset - e.x) / 250), 0);
+            domElem.scale = Math.max(1 - Math.abs((centerOffset - e.x) / 160), 0);
         } else {
             console.log("out");
             domElem.scale = 0;
@@ -109,15 +90,16 @@ function taskbarMoveAnimation(e: MouseEvent | undefined) {
 </script>
 
 <style scoped lang="scss" >
-@import "/src/scss/utils/space.scss";
+@import "/src/scss/space.scss";
 @import "/src/scss/utils/mixin/center.scss";
-@import "/src/scss/utils/mixin/shadow.scss";
+@import "/src/scss/utils/mixin/shadow-border.scss";
 @import "/src/scss/utils/mixin/position.scss";
+@import "/src/scss/utils/mixin/fix.scss";
 @import "/src/scss/background.scss";
 
-$taskbarHeight: 10px;
 $taskBarMarginBottom: 10px;
-$taskSize: 60px;
+$taskSize: 50px;
+$taskbarHeight: $taskSize + $taskBarMarginBottom * 2;
 $taskMarginBottom: 10px;
 .desktop-box {
     & > .background-image {
@@ -134,22 +116,23 @@ $taskMarginBottom: 10px;
         user-select: none;
         z-index: 2;
         & > .taskbar-box {
+            display: flex;
             position: absolute;
+            justify-content: center;
             bottom: 0;
             left: 0;
             right: 0;
-            display: flex;
-            justify-content: center;
             .taskbar-content {
                 position: relative;
                 padding: 60px 25px 0;
                 & > .taskbar {
                     @include shadow-less;
-                    border-radius: 15px;
+                    border-radius: 20px;
                     height: $taskbarHeight;
                     margin-bottom: 10px;
                     border: 1px solid #fff1;
-                    background-color: #fff6;
+                    background-color: #fff4;
+                    backdrop-filter: blur(10px);
                     position: absolute;
                     left: 0;
                     right: 0;
@@ -162,14 +145,16 @@ $taskMarginBottom: 10px;
                     padding-top: 10px;
                     top: -($taskMarginBottom + $taskBarMarginBottom);
                     & > .task {
+                        @include fix-transform-scale;
                         @include shadow-less;
+                        cursor: pointer;
                         position: relative;
                         transform-origin: bottom center;
-                        transition: all 0.1s linear;
+                        transition: all 0.05s linear;
                         filter: drop-shadow(2px 4px 6px #0004);
                         width: $taskSize;
                         height: $taskSize;
-                        margin: 0 10px;
+                        margin: 0 12px;
                         z-index: 1;
                         img {
                             width: 100%;

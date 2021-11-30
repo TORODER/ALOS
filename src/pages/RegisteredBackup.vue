@@ -100,9 +100,9 @@ function toOS() {
 </script>
 
 <style lang="scss" scoped>
-@import "/src/scss/utils/space.scss";
+@import "/src/scss/space.scss";
 @import "/src/scss/utils/mixin/center.scss";
-@import "/src/scss/utils/mixin/shadow.scss";
+@import "/src/scss/utils/mixin/shadow-border.scss";
 @import "/src/scss/utils/mixin/position.scss";
 @import "/src/scss/background.scss";
 .login-box {

@@ -19,7 +19,6 @@
                 <input type="text" v-model="passwd" placeholder="密码" />
             </div>
             <div class="space big"></div>
-            <div v-show="showErr">{{ err }}</div>
             <div class="next-button" @click="login">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -63,12 +62,13 @@
 <script setup lang="ts">
 import { reactive, ref } from '@vue/reactivity';
 import { watch } from '@vue/runtime-core';
-import { useRouter } from 'vue-router';
 import { imagePath } from '../public';
 import create from '../core/api/login';
 import apiCodeDescribe from '../core/api/describe';
 import { toDesktop, toRegistered } from '../router';
 import { getLocalLanguage } from '../core/language';
+import { osNotificationManage } from '../core/service/os-notification';
+import { osPackageDescription } from '../core/package/os.package';
 
 const backgroundImage = ref(`${imagePath}background.jpg`);
 const userImage = ref(`${imagePath}user-image.jpg`);
@@ -76,8 +76,6 @@ const account = ref("wst13362307472@163.com");
 const passwd = ref("Aa123456");
 
 let showPassword = ref(account.value.length > 0);
-let err = ref("");
-let showErr = ref(false);
 
 async function login() {
     const data = await create(account.value, passwd.value);
@@ -85,8 +83,12 @@ async function login() {
         console.log(data.code)
         toDesktop()
     } else {
-        err.value = getLocalLanguage(apiCodeDescribe(data.code));
-        showErr.value = true;
+        const err = getLocalLanguage(apiCodeDescribe(data.code));
+        osNotificationManage.pushNewOSNotification({
+            "title": "登录失败",
+            "content": err,
+            "packageID": osPackageDescription.packageID
+        })
     }
 }
 
@@ -97,9 +99,9 @@ watch(account, (account) => {
 </script>
 
 <style lang="scss" scoped>
-@import "/src/scss/utils/space.scss";
+@import "/src/scss/space.scss";
 @import "/src/scss/utils/mixin/center.scss";
-@import "/src/scss/utils/mixin/shadow.scss";
+@import "/src/scss/utils/mixin/shadow-border.scss";
 @import "/src/scss/utils/mixin/position.scss";
 @import "/src/scss/background.scss";
 .login-box {
@@ -110,7 +112,6 @@ watch(account, (account) => {
         @include position-fixed-fill;
         @include desktop-background;
         z-index: 1;
-        background-size: cover;
     }
     & > .login-content {
         display: flex;

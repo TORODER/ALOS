@@ -1,3 +1,7 @@
 @mixin  shadow-less {
     box-shadow: 0 2px 3px #3333330f;
 }
+
+@mixin  border-less {
+    border: .8px solid #3332;
+}

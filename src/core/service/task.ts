@@ -1,10 +1,10 @@
 import { reactive } from "vue";
-import { PIDTaskMap, Task } from "../@types/task";
-import { WarnTask } from "./debug/warn";
-import { Listener, ListenerEvent } from "./listener";
-import { buildPID } from "./pid";
+import { PIDTaskMap, Task } from "../../@types/task";
+import { WarnTask } from "../debug/warn";
+import { Listener, ListenerEvent } from "../listener";
+import { buildPID } from "../pid";
 
-class TaskTypeManage {
+class OSTaskTypeManage {
 
     taskTypeMap: Map<TaskType, PIDTaskMap>;
 
@@ -43,7 +43,7 @@ class TaskTypeManage {
 
 }
 
-class TaskManage extends Listener<ListenerEvent<TaskManageEvent, Task>> {
+class OSTaskManage extends Listener<ListenerEvent<TaskManageEvent, Task>> {
     taskMap: PIDTaskMap;
 
     constructor() {
@@ -54,7 +54,7 @@ class TaskManage extends Listener<ListenerEvent<TaskManageEvent, Task>> {
     private rawAddTask = (task: Task) => {
         if (!this.taskMap.has(task.pid)) {
             this.taskMap.set(task.pid, task);
-            taskTypeManage.add(task);
+            osTaskTypeManage.add(task);
             this.pushNotice(new ListenerEvent(TaskManageEvent.add, task));
         } else {
             WarnTask.taskPIDReWrite();
@@ -75,7 +75,7 @@ class TaskManage extends Listener<ListenerEvent<TaskManageEvent, Task>> {
         const task = this.taskMap.get(pid);
         if (task != undefined) {
             this.taskMap.delete(task.pid)
-            taskTypeManage.remove(task);
+            osTaskTypeManage.remove(task);
             this.pushNotice(new ListenerEvent(TaskManageEvent.delete, task));
         } else {
             WarnTask.deleteNoTExisTask();
@@ -83,12 +83,13 @@ class TaskManage extends Listener<ListenerEvent<TaskManageEvent, Task>> {
     }
 
     selectTasksFromTaskType = (taskType: TaskType): PIDTaskMap => {
-        return taskTypeManage.select(taskType);
+        return osTaskTypeManage.select(taskType);
     }
 
 }
 
-const taskTypeManage = new TaskTypeManage();
+const osTaskTypeManage = new OSTaskTypeManage();
+
 export enum TaskManageEvent { add, delete };
 export enum TaskType { window, background };
-export const taskManage = new TaskManage();
+export const osTaskManage = new OSTaskManage();

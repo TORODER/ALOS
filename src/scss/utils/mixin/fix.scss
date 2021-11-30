@@ -1,0 +1,4 @@
+@mixin fix-transform-scale{
+    -webkit-font-smoothing: subpixel-antialiased;
+    backface-visibility: hidden;
+} 

@@ -1,15 +1,16 @@
 import { reactive } from "vue";
-import { PIDMap, Task } from "../@types/task";
-import { ListenerEvent } from "./listener";
-import { taskManage, TaskManageEvent, TaskType } from "./task";
+import { PIDMap, Task } from "../../@types/task";
+import { ListenerEvent } from "../listener";
 
+import { osTaskManage, TaskManageEvent, TaskType } from "./task";
 
 interface DockElem {
     task: Task,
     scale: number,
 };
-
-
+/**
+ * 窗口管理器
+ */
 class WindowsManage {
     windowTasks: Set<Task>;
     dockElemMap: PIDMap<DockElem>;
@@ -17,7 +18,7 @@ class WindowsManage {
     constructor() {
         this.windowTasks = reactive(new Set());
         this.dockElemMap = reactive(new Map());
-        taskManage.addListener(this.onTaskManageEvent);
+        osTaskManage.addListener(this.onTaskManageEvent);
     }
 
     onTaskManageEvent = (v: ListenerEvent<TaskManageEvent, Task>) => {
@@ -43,9 +44,6 @@ class WindowsManage {
         }
     }
 
-
-
 }
-
 
 export const windowsManage = new WindowsManage();
