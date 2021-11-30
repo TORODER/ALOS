@@ -39,7 +39,7 @@
                 </svg>
             </div>
             <div class="space big"></div>
-            <div v-show="showErr">{{err}}</div>
+            <div v-show="showErr">{{ err }}</div>
             <div class="next-button" @click="toRegistered">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -79,23 +79,21 @@ let err = ref("");
 let showErr = ref(false);
 let emailcode = ref("");
 
-
-
-async function sendEmailCode(){
+async function sendEmailCode() {
     const data = await sendemailcode(account.value);
-    if(data.code === 2000){
-        
-    }else{
+    if (data.code === 2000) {
+
+    } else {
         err.value = describe(data.code).ZH_CN as string;
         showErr.value = true;
     }
 }
 
-async function toRegistered(){
-    const data = await registered(account.value,passwd.value,emailcode.value);
-    if(data.code === 2000){
+async function toRegistered() {
+    const data = await registered(account.value, passwd.value, emailcode.value);
+    if (data.code === 2000) {
         toOS()
-    }else{
+    } else {
         err.value = describe(data.code).ZH_CN as string;
         console.log(data.code)
         showErr.value = true;
@@ -208,7 +206,6 @@ function toOS() {
                 object-fit: cover;
             }
         }
-        
     }
 }
 </style>
