@@ -8,7 +8,7 @@ interface DockElem {
 };
 
 
-class ALOSWindow {
+export class ALOSWindow {
     task: WindowTask;
     x: number;
     y: number;

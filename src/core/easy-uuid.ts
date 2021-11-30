@@ -6,5 +6,5 @@ let acc = 0;
  */
 export function buildUUID(prefix: string) {
     acc+=1;
-    return `${prefix}_${Date.now()}_${~~Math.random() * 99999}_${acc}`;
+    return `${prefix}_${Date.now()}_${~~(Math.random() * 99999)}_${acc}`;
 }

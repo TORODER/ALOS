@@ -1,11 +1,13 @@
 <template>
     <div class="os-notification-box">
         <transition-group name="notificationElem">
-            <OSNotificationElem
+            <div
+                class="notification-elem-box"
                 v-for="notification in showOSNotifications"
-                :notification="notification"
                 :key="notification.nid"
-            />
+            >
+                <OSNotificationElem :notification="notification" />
+            </div>
         </transition-group>
     </div>
 </template>
@@ -29,12 +31,13 @@ $notificationBoxWidth: max(min(16%, 350px), 260px);
     position: fixed;
     display: flex;
     right: 0;
-    bottom: 0;
     top: 0;
     width: $notificationBoxWidth;
     flex-direction: column;
     justify-content: start;
-    padding: 15px;
+    .notification-elem-box {
+        padding-right: 12px;
+    }
 }
 
 .notificationElem-enter-active,

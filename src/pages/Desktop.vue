@@ -8,8 +8,6 @@
         ></div>
         <div class="desktop-windows-container">
             <OSWindowsLayer />
-        </div>
-        <div class="desktop-system-ui-box">
             <div class="taskbar-box">
                 <div
                     class="taskbar-content"
@@ -109,10 +107,6 @@ $taskMarginBottom: 10px;
         z-index: 0;
     }
     & > .desktop-windows-container {
-        @include position-fixed-fill;
-        z-index: 1;
-    }
-    & > .desktop-system-ui-box {
         @include position-fixed-fill;
         user-select: none;
         z-index: 2;

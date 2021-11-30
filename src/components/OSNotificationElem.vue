@@ -42,7 +42,7 @@ const { notification } = defineProps<{
     min-height: 70px;
     max-height: 130px;
     padding: 8px 5px 8px 12px;
-    margin-bottom: 15px;
+    margin: 12px 12px 0 0;
     .header-box {
         height: 24px;
         display: flex;
