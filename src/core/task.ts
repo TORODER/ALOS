@@ -1,3 +1,4 @@
+import { reactive } from "vue";
 import { PIDTaskMap, Task } from "../@types/task";
 import { WarnTask } from "./debug/warn";
 import { Listener, ListenerEvent } from "./listener";
@@ -11,14 +12,14 @@ class TaskTypeManage {
         this.taskTypeMap = new Map();
     }
 
-    private rawSelect(taskType: TaskType): PIDTaskMap {
+    private rawSelect = (taskType: TaskType): PIDTaskMap => {
         if (!this.taskTypeMap.has(taskType)) {
             this.taskTypeMap.set(taskType, new Map());
         }
         return this.taskTypeMap.get(taskType)!;
     }
 
-    remove(task: Task) {
+    remove = (task: Task) => {
         const taskMap = this.taskTypeMap.get(task.type);
         if (taskMap != undefined && taskMap!.has(task.pid)) {
             taskMap!.delete(task.pid);
@@ -27,7 +28,7 @@ class TaskTypeManage {
         }
     }
 
-    add(task: Task) {
+    add = (task: Task) => {
         const taskMap = this.rawSelect(task.type);
         if (!taskMap.has(task.pid)) {
             taskMap.set(task.pid, task);
@@ -36,7 +37,7 @@ class TaskTypeManage {
         }
     }
 
-    select(taskType: TaskType): PIDTaskMap {
+    select = (taskType: TaskType): PIDTaskMap => {
         return this.rawSelect(taskType);
     }
 
@@ -50,7 +51,7 @@ class TaskManage extends Listener<ListenerEvent<TaskManageEvent, Task>> {
         this.taskMap = new Map();
     }
 
-    private rawAddTask(task: Task) {
+    private rawAddTask = (task: Task) => {
         if (!this.taskMap.has(task.pid)) {
             this.taskMap.set(task.pid, task);
             taskTypeManage.add(task);
@@ -60,18 +61,17 @@ class TaskManage extends Listener<ListenerEvent<TaskManageEvent, Task>> {
         }
     }
 
-    create(appDescription: AppDescription, type: TaskType): Task {
-        const newT: Task = {
+    create = (appDescription: AppDescription, type: TaskType): Task => {
+        const newT: Task = reactive({
             "packageID": appDescription.packageID,
             "pid": buildPID(appDescription),
             "type": type
-        };
+        });
         this.rawAddTask(newT);
         return this.taskMap.get(newT.pid)!;
     }
 
-
-    remove(pid: string) {
+    remove = (pid: string) => {
         const task = this.taskMap.get(pid);
         if (task != undefined) {
             this.taskMap.delete(task.pid)
@@ -82,7 +82,7 @@ class TaskManage extends Listener<ListenerEvent<TaskManageEvent, Task>> {
         }
     }
 
-    selectTasksFromTaskType(taskType: TaskType): PIDTaskMap {
+    selectTasksFromTaskType = (taskType: TaskType): PIDTaskMap => {
         return taskTypeManage.select(taskType);
     }
 

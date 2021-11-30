@@ -23,3 +23,13 @@ export const router = createRouter({
         }
     ],
 });
+
+
+
+export function toDesktop() {
+    router.push("/desktop");
+}
+
+export function toRegistered() {
+    router.push("/registered");
+}

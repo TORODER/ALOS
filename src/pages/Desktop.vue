@@ -9,18 +9,24 @@
         <div class="desktop-windows-container"></div>
         <div class="desktop-system-ui-box">
             <div class="taskbar-box">
-                <div class="taskbar-content" @mousemove="taskbarMoveAnimation">
+                <div
+                    class="taskbar-content"
+                    @mousemove="taskbarMoveAnimation"
+                    @mouseout.self="taskbarMoveAnimation(undefined)"
+                >
                     <div class="task-row">
                         <div
                             class="task"
-                            :ref="(dom) => {
-                                console.log(dom);
-                                taskDoms[value.pid] = dom;
+                            :ref="(e) => handelTaskDoms(e as any, dockElem.task)"
+                            :key="dockElem.task.pid"
+                            :style="{
+                                transform: `scale(${1 + dockElem.scale * .3}) translateY(${dockElem.scale * -15}px)`
                             }"
-                            :index="value.pid"
-                            v-for="value in windowTasks"
+                            v-for="[dockElemKey, dockElem] in dockElemMap"
                         >
-                            <img :src="appDescriptionMap.get(value.packageID)!.icon.taskbar" />
+                            <img
+                                :src="appDescriptionMap.get(dockElem.task.packageID)!.icon.taskbar"
+                            />
                         </div>
                     </div>
                     <div class="taskbar"></div>
@@ -32,12 +38,13 @@
 
 <script setup lang="ts" >
 import { reactive, ref } from 'vue';
-import { Task } from '../@types/task';
+import { PID, PIDMap, Task } from '../@types/task';
 import { ListenerEvent } from '../core/listener';
 import { taskManage, TaskManageEvent, TaskType } from '../core/task';
+import { windowsManage } from '../core/window';
 import { imagePath } from '../public';
 const backgroundImage = ref(`${imagePath}background.jpg`);
-
+const dockElemMap = windowsManage.dockElemMap;
 const appDescriptions: AppDescription[] = [
     {
         "icon": {
@@ -63,26 +70,40 @@ const appDescriptionMap: Map<string, AppDescription> = new Map(appDescriptions.m
 appDescriptions.forEach((v, i) => {
     setTimeout(() => {
         taskManage.create(v, TaskType.window);
-        console.log("add");
+        taskManage.create(v, TaskType.window);
+        taskManage.create(v, TaskType.window);
     }, i * 3000);
 });
 
-const windowTasks: Set<Task> = reactive(new Set());
-function onTaskManageEvent(v: ListenerEvent<TaskManageEvent, Task>) {
-    switch (v.event) {
-        case TaskManageEvent.add:
-            console.log("add", v.data);
-            windowTasks.add(v.data);
-            break;
+// setTimeout(() => {
+//     const t = Array.from(taskManage.selectTasksFromTaskType(TaskType.window).values());
+//     taskManage.remove(t[0]!.pid);
+//     console.log(["delete", t[0]!.pid]);
+// }, 1000 * 10)
+
+
+const taskDoms: PIDMap<Element> = new Map();
+function handelTaskDoms(dom: Element | null, task: Task) {
+    if (dom != null) {
+        taskDoms.set(task.pid, dom);
+    } else {
+        taskDoms.delete(task.pid);
     }
 }
-taskManage.addListener(onTaskManageEvent);
 
-const taskDoms: Record<string, any> = {};
-
-function taskbarMoveAnimation(e: MouseEvent) {
-    // console.log(e.offsetX, e.offsetY);
-    // console.log(taskDoms, taskDoms.map(e => [e.offsetLeft, e.offsetTop]));
+function taskbarMoveAnimation(e: MouseEvent | undefined) {
+    for (const [pid, elem] of taskDoms) {
+        const domElem = windowsManage.dockElemMap.get(pid);
+        if (domElem == undefined) continue;
+        if (e != undefined) {
+            const domRect = elem.getBoundingClientRect();
+            const centerOffset = domRect.left + domRect.width / 2;
+            domElem.scale = Math.max(1 - Math.abs((centerOffset - e.x) / 250), 0);
+        } else {
+            console.log("out");
+            domElem.scale = 0;
+        }
+    }
 }
 
 </script>
@@ -94,7 +115,7 @@ function taskbarMoveAnimation(e: MouseEvent) {
 @import "/src/scss/utils/mixin/position.scss";
 @import "/src/scss/background.scss";
 
-$taskbarHeight: 20px;
+$taskbarHeight: 10px;
 $taskBarMarginBottom: 10px;
 $taskSize: 60px;
 $taskMarginBottom: 10px;
@@ -121,7 +142,7 @@ $taskMarginBottom: 10px;
             justify-content: center;
             .taskbar-content {
                 position: relative;
-                padding: 0 25px;
+                padding: 60px 25px 0;
                 & > .taskbar {
                     @include shadow-less;
                     border-radius: 15px;
@@ -137,19 +158,19 @@ $taskMarginBottom: 10px;
                 }
                 .task-row {
                     display: flex;
+                    position: relative;
+                    padding-top: 10px;
+                    top: -($taskMarginBottom + $taskBarMarginBottom);
                     & > .task {
                         @include shadow-less;
-                        // border: 1px solid #fff1;
-                        // backdrop-filter: blur(10px);
-                        // padding: 10px;
-                        filter: drop-shadow(2px 4px 6px #0004);
                         position: relative;
+                        transform-origin: bottom center;
+                        transition: all 0.1s linear;
+                        filter: drop-shadow(2px 4px 6px #0004);
                         width: $taskSize;
                         height: $taskSize;
-                        border-radius: 15px;
                         margin: 0 10px;
                         z-index: 1;
-                        top: -($taskMarginBottom + $taskBarMarginBottom);
                         img {
                             width: 100%;
                             height: 100%;
