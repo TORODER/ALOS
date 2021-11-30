@@ -1,8 +1,8 @@
 import { reactive } from "vue";
-import { PIDTaskMap, Task } from "../../@types/task";
 import { WarnTask } from "../debug/warn";
 import { Listener, ListenerEvent } from "../listener";
 import { buildPID } from "../pid";
+import { WindowMode } from "./window-manage";
 
 class OSTaskTypeManage {
 
@@ -61,6 +61,10 @@ class OSTaskManage extends Listener<ListenerEvent<TaskManageEvent, Task>> {
         }
     }
 
+
+    /**
+     * ! 即将废弃 ⚠️ 使用 [addTask] 和 [OSTaskBuilder] 代替
+     */
     create = (appDescription: AppDescription, type: TaskType): Task => {
         const newT: Task = reactive({
             "packageID": appDescription.packageID,
@@ -69,6 +73,10 @@ class OSTaskManage extends Listener<ListenerEvent<TaskManageEvent, Task>> {
         });
         this.rawAddTask(newT);
         return this.taskMap.get(newT.pid)!;
+    }
+
+    addTask = (task: Task) => {
+        this.rawAddTask(reactive(task));
     }
 
     remove = (pid: string) => {
@@ -84,6 +92,22 @@ class OSTaskManage extends Listener<ListenerEvent<TaskManageEvent, Task>> {
 
     selectTasksFromTaskType = (taskType: TaskType): PIDTaskMap => {
         return osTaskTypeManage.select(taskType);
+    }
+
+}
+
+
+
+export namespace OSTaskBuilder {
+
+    export const createWindowFrameTask = (appDescription: AppDescription, frameConfig: WindowFrameModeConfig): WindowFrameTask => {
+        return {
+            packageID: appDescription.packageID,
+            pid: buildPID(appDescription),
+            type: TaskType.window,
+            windowMode: WindowMode.frame,
+            config: frameConfig
+        };
     }
 
 }

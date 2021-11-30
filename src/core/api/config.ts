@@ -39,8 +39,7 @@ export enum HttpPackageCode {
 }
 
 
-export default (code: HttpPackageCode): Multilingual<string> => {
-
+export const apiCodeDescribe = (code: HttpPackageCode): Multilingual<string> => {
     switch (code) {
         case HttpPackageCode.LoginPasswdError:
             return {
@@ -74,4 +73,9 @@ export default (code: HttpPackageCode): Multilingual<string> => {
             };
     }
 
+}
+
+
+export const apiConfig = {
+    host: "/api"
 }

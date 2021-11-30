@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
+import { apiConfig } from './config';
 axios.defaults.withCredentials=true
 
 interface axiosInstance {
@@ -11,17 +12,12 @@ export interface loginData{
     email:string,
     uuid:string
 }
-export interface repInstance<T>{
-    code:number,
-    data:T,
-    describe: string
-}
 
 
 export default async (email: string, passwd: string):Promise<repInstance<loginData>> => {
     let config: AxiosRequestConfig<axiosInstance> = {
         method: 'post',
-        url: '/api/user/signin',
+        url: `${apiConfig.host}/user/signin`,
         headers: {
             'Content-Type': 'application/json',
         },

@@ -6,7 +6,9 @@
                 'background-image': `url('${backgroundImage}')`
             }"
         ></div>
-        <div class="desktop-windows-container"></div>
+        <div class="desktop-windows-container">
+            <OSWindowsLayer />
+        </div>
         <div class="desktop-system-ui-box">
             <div class="taskbar-box">
                 <div
@@ -35,27 +37,26 @@
         </div>
     </div>
 </template>
-
 <script setup lang="ts" >
+
+
 import { reactive, ref } from 'vue';
-import { PID, PIDMap, Task } from '../@types/task';
+import { osPackageDescription } from '../core/package/os.package';
 import { osPackageManage } from '../core/service/os-package-manage';
-import { osTaskManage, TaskType } from '../core/service/task';
-import { windowsManage } from '../core/service/window';
+import { osTaskManage, TaskType } from '../core/service/os-task-manage';
+import { windowsManage } from '../core/service/window-manage';
 import { imagePath } from '../public';
+import OSWindowsLayer from "../components/OSWindowsLayer.vue"
 const backgroundImage = ref(`${imagePath}background.jpg`);
 const dockElemMap = windowsManage.dockElemMap;
-const scaleMax = .5;
-const translateYMax = -8;
+const scaleMax = .3;
+const translateYMax = -18;
 
-// appDescriptions.forEach((v, i) => {
-//     setTimeout(() => {
-//         osTaskManage.create(v, TaskType.window);
-//         osTaskManage.create(v, TaskType.window);
-//         osTaskManage.create(v, TaskType.window);
-//     }, i * 3000);
-// });
-
+// 
+// osTaskManage.create(osPackageDescription,TaskType.window);
+// osTaskManage.create(osPackageDescription,TaskType.window);
+// osTaskManage.create(osPackageDescription,TaskType.window);
+// osTaskManage.create(osPackageDescription,TaskType.window);
 // setTimeout(() => {
 //     const t = Array.from(osTaskManage.selectTasksFromTaskType(TaskType.window).values());
 //     osTaskManage.remove(t[0]!.pid);

@@ -1,5 +1,5 @@
 <template>
-    <div class="notification-elem" >
+    <div class="notification-elem">
         <div class="header-box">
             <img
                 :src="getNotificationIcon(osPackageManage.getAppDescription(notification.packageID)!)"

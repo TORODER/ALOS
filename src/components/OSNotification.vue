@@ -13,7 +13,7 @@
 <script lang="ts" setup>
 import { ref, computed } from "vue";
 import OSNotificationElem from "./OSNotificationElem.vue";
-import { osNotificationManage } from "../core/service/os-notification";
+import { osNotificationManage } from "../core/service/os-notification-manage";
 const showCount = ref(3);
 const showOSNotifications = computed(() => osNotificationManage.notifications.slice(0, showCount.value));
 </script>

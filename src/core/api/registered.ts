@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
+import { apiConfig } from './config';
 import { loginData } from './login'
 
 axios.defaults.withCredentials = true
@@ -9,28 +10,20 @@ interface axiosInstance {
     testCode: string
 }
 
-interface repInstance<T> {
-    code: number,
-    data: T,
-    describe: string
-}
-
-
-export default async (email:string,passwd:string,testCode:string) => {
-    let config: AxiosRequestConfig<axiosInstance> =  {
+export default async (email: string, passwd: string, testCode: string) => {
+    let config: AxiosRequestConfig<axiosInstance> = {
         method: 'post',
-        url: '/api/user/signup',
-        headers: { 
-            'Content-Type': 'application/json', 
+        url: `${apiConfig.host}/user/signup`,
+        headers: {
+            'Content-Type': 'application/json',
         },
     };
-    config.data={
+    config.data = {
         email,
         passwd,
         testCode
-    }; 
-
-    const data=(await axios(config)).data as repInstance<loginData>;
+    };
+    const data = (await axios(config)).data as repInstance<loginData>;
     return data
 };
 
