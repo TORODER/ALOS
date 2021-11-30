@@ -40,7 +40,7 @@
             </div>
             <div class="space big"></div>
             <div v-show="showErr">{{err}}</div>
-            <div class="next-button" @click="">
+            <div class="next-button" @click="toRegistered">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     class="icon icon-tabler icon-tabler-arrow-narrow-right"
@@ -64,31 +64,43 @@
 
 <script setup lang="ts">
 import { ref } from '@vue/reactivity';
-import { watch } from '@vue/runtime-core';
 import { useRouter } from 'vue-router';
 import { imagePath } from '../public';
-import create from '../core/api/login';
 import describe from '../core/api/describe';
+import sendemailcode from '../core/api/sendemailcode';
+import registered from '../core/api/registered';
 const backgroundImage = ref(`${imagePath}background.jpg`);
 const userImage = ref(`${imagePath}user-image.jpg`);
 const account = ref("wst13362307472@163.com");
 const passwd = ref("Aa123456");
-let showPassword = ref(false);
+let showPassword = ref(true);
 const router = useRouter();
 let err = ref("");
 let showErr = ref(false);
 let emailcode = ref("");
 
-watch(account, (account) => {
-    showPassword.value = account.length > 0;
-});
-
 
 
 async function sendEmailCode(){
-
+    const data = await sendemailcode(account.value);
+    if(data.code === 2000){
+        
+    }else{
+        err.value = describe(data.code).ZH_CN as string;
+        showErr.value = true;
+    }
 }
 
+async function toRegistered(){
+    const data = await registered(account.value,passwd.value,emailcode.value);
+    if(data.code === 2000){
+        toOS()
+    }else{
+        err.value = describe(data.code).ZH_CN as string;
+        console.log(data.code)
+        showErr.value = true;
+    }
+}
 
 function toOS() {
     router.push("/desktop");
