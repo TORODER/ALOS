@@ -7,13 +7,17 @@
             top: `${value.y}px`,
             width: `${value.width}px`,
             height: `${value.height}px`,
-            zIndex: alosWindowStateMap.get(value)?.zindex ?? defZindex
+            zIndex: value.zIndex
         }"
         :key="value.task.pid"
         @mousedown="(e) => handelDownWindow(e, value, MouseConState.windowMove)"
     >
         <div class="alos-window-ui-box">
-            <div class="alos-window-state-bar"></div>
+            <div class="alos-window-state-bar">
+                <div class="alos-window-button close" @click="(e) => handelCloseWindow(value)"></div>
+                <div class="alos-window-button mini"></div>
+                <div class="alos-window-button big"></div>
+            </div>
             <div v-if="value.task.windowMode == WindowMode.frame" class="alos-window-frame">
                 <iframe :src="(value.task.config as WindowFrameModeConfig).startUrl"></iframe>
                 <div
@@ -22,7 +26,6 @@
                 ></div>
             </div>
         </div>
-
         <div
             @mousedown.stop="(e) => handelDownWindow(e, value, MouseConState.sizeCon)"
             class="alos-window-size-con"
@@ -30,15 +33,12 @@
     </div>
 </template>
 <script  lang="ts" setup>
-
 import { computed, reactive } from '@vue/reactivity';
 import { onMounted, onUnmounted } from '@vue/runtime-core';
 import { Ref, ref } from 'vue';
-import { ALOSWindow, WindowMode, windowsManage } from '../core/service/window-manage';
-const defZindex = 2;
-interface ALOSWindowState {
-    zindex: number
-}
+import { osTaskManage, TaskManageEvent } from '../core/service/os-task-manage';
+import { ALOSWindow, defZindex, WindowMode, windowsManage } from '../core/service/window-manage';
+
 enum MouseConState {
     sizeCon,
     windowMove
@@ -69,27 +69,20 @@ function handelUpWindow(event: MouseEvent) {
     mouseConState.value = undefined;
 }
 
-
 function handelDownWindow(event: MouseEvent, alosWindow: ALOSWindow, mstate: MouseConState) {
-    createALOSWindowState(alosWindow);
-    const alosWindowState = alosWindowStateMap.get(alosWindow)
-    alosWindowState!.zindex = ++acc;
+    windowsManage.windowToTopLayer(alosWindow);
     activeALOSWindow.value = alosWindow;
     mouseConState.value = mstate;
 }
 
-
-function createALOSWindowState(alosWindow: ALOSWindow) {
-    if (!alosWindowStateMap.has(alosWindow)) {
-        alosWindowStateMap.set(alosWindow, reactive({ zindex: defZindex }));
-    }
+function handelCloseWindow(alosWindow: ALOSWindow) {
+    osTaskManage.remove(alosWindow.task.pid);
 }
 
 let mouseConState = ref<MouseConState | undefined>(undefined);
 let activeALOSWindow = ref<ALOSWindow | undefined>(undefined);
 let acc = defZindex;
 
-const alosWindowStateMap = reactive(new Map<ALOSWindow, ALOSWindowState>());
 const alosWindows = computed(() => Array.from(windowsManage.alosWindowMap.values()));
 
 onMounted(() => {
@@ -104,24 +97,27 @@ onUnmounted(() => {
 
 </script>
 <style lang="scss" scoped>
+@use "sass:math";
+
 @import "/src/scss/utils/mixin/position.scss";
 @import "/src/scss/utils/mixin/fix.scss";
 @import "/src/scss/utils/mixin/shadow-border.scss";
 @import "/src/scss/utils/mixin/font.scss";
-$windowSizeCon: 20px;
-$windowSizeConPos: $windowSizeCon / -2;
+@import "/src/scss/class/window.scss";
 
+$windowSizeCon: 20px;
+$windowSizeConPos: math.div($windowSizeCon, -2);
 $windowBarHeight: 24px;
 .alos-window {
-    @include shadow-less;
     position: absolute;
     &,
     * {
         transition: none;
     }
     .alos-window-ui-box {
-        position: absolute;
         @include position-fill;
+        @include shadow-fill-less;
+        position: absolute;
         border-radius: 8px;
         border: 1.2px solid #fff;
         overflow: hidden;
@@ -129,6 +125,24 @@ $windowBarHeight: 24px;
             height: $windowBarHeight;
             width: 100%;
             background-color: #fff;
+            display: flex;
+            align-items: center;
+            padding: 0 5px;
+            .alos-window-button {
+                @include alos-window-button;
+                margin-right: 5px;
+                &.close {
+                    background-color: #f33;
+                }
+                &.mini {
+                    @include alos-window-button;
+                    background-color: rgb(255, 224, 51);
+                }
+                &.big {
+                    @include alos-window-button;
+                    background-color: rgb(37, 209, 31);
+                }
+            }
         }
         & > .alos-window-frame {
             position: absolute;
@@ -154,6 +168,7 @@ $windowBarHeight: 24px;
         z-index: 999;
         right: $windowSizeConPos;
         bottom: $windowSizeConPos;
+        cursor: nwse-resize;
     }
 }
 </style>

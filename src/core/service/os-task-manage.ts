@@ -113,7 +113,6 @@ export namespace OSTaskBuilder {
 }
 
 const osTaskTypeManage = new OSTaskTypeManage();
-
 export enum TaskManageEvent { add, delete };
 export enum TaskType { window, background };
 export const osTaskManage = new OSTaskManage();

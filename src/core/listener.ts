@@ -1,3 +1,5 @@
+import { late } from "./utils/async";
+
 interface ListenerNotice<T> {
     (value: T): void
 }
@@ -10,9 +12,11 @@ export class Listener<T>{
     }
 
     pushNotice(value: T) {
-        for (const listenerNotice of this.listeners.values()) {
-            listenerNotice(value);
-        }
+        late(() => {
+            for (const listenerNotice of this.listeners.values()) {
+                listenerNotice(value);
+            }
+        })
     }
 
     addListener(listenerNotice: ListenerNotice<T>) {

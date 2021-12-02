@@ -8,7 +8,13 @@
         ></div>
         <div class="desktop-windows-container">
             <OSWindowsLayer />
-            <div class="taskbar-box">
+            <div
+                class="taskbar-box"
+                :ref="(refElem) => taskBarRef = refElem"
+                :style="{
+                    left: taskBarLeft == undefined ? `50%` : `${taskBarLeft}px`,
+                }"
+            >
                 <div
                     class="taskbar-content"
                     @mousemove="taskbarMoveAnimation"
@@ -29,40 +35,35 @@
                             />
                         </div>
                     </div>
-                    <div class="taskbar"></div>
+                    <div
+                        class="taskbar"
+                        :style="{
+                            width: taskBarWidth == undefined ? `0px` : `${taskBarWidth}px`
+                        }"
+                    ></div>
                 </div>
             </div>
         </div>
     </div>
 </template>
 <script setup lang="ts" >
-
-
-import { reactive, ref } from 'vue';
+import { OSTaskBuilder, osTaskManage, TaskType } from '../core/service/os-task-manage';
+import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { osPackageDescription } from '../core/package/os.package';
 import { osPackageManage } from '../core/service/os-package-manage';
-import { osTaskManage, TaskType } from '../core/service/os-task-manage';
 import { windowsManage } from '../core/service/window-manage';
 import { imagePath } from '../public';
 import OSWindowsLayer from "../components/OSWindowsLayer.vue"
+import { late } from '../core/utils/async';
 const backgroundImage = ref(`${imagePath}background.jpg`);
 const dockElemMap = windowsManage.dockElemMap;
 const scaleMax = .3;
 const translateYMax = -18;
-
-// 
-// osTaskManage.create(osPackageDescription,TaskType.window);
-// osTaskManage.create(osPackageDescription,TaskType.window);
-// osTaskManage.create(osPackageDescription,TaskType.window);
-// osTaskManage.create(osPackageDescription,TaskType.window);
-// setTimeout(() => {
-//     const t = Array.from(osTaskManage.selectTasksFromTaskType(TaskType.window).values());
-//     osTaskManage.remove(t[0]!.pid);
-//     console.log(["delete", t[0]!.pid]);
-// }, 1000 * 10)
-
-
+const taskBarRef = ref();
+const taskBarLeft = ref<number | undefined>(undefined);
+const taskBarWidth = ref<number | undefined>(undefined);
 const taskDoms: PIDMap<Element> = new Map();
+
 function handelTaskDoms(dom: Element | null, task: Task) {
     if (dom != null) {
         taskDoms.set(task.pid, dom);
@@ -86,6 +87,21 @@ function taskbarMoveAnimation(e: MouseEvent | undefined) {
     }
 }
 
+function relayoutTaskBar() {
+    const getTaskBarWidth = (taskBarRef.value as Element).clientWidth;
+    const left = (window.innerWidth - getTaskBarWidth) / 2;
+    taskBarWidth.value = getTaskBarWidth;
+    taskBarLeft.value = left;
+    console.log(taskBarRef.value);
+}
+
+onMounted(() => {
+    relayoutTaskBar();
+    windowsManage.addListener(relayoutTaskBar)
+})
+onUnmounted(()=>{
+    windowsManage.removeListener(relayoutTaskBar)
+});
 </script>
 
 <style scoped lang="scss" >
@@ -111,12 +127,12 @@ $taskMarginBottom: 10px;
         user-select: none;
         z-index: 2;
         & > .taskbar-box {
-            display: flex;
             position: absolute;
+            display: flex;
             justify-content: center;
             bottom: 0;
-            left: 0;
-            right: 0;
+            transition: all 0.4s;
+            z-index: 9999999;
             .taskbar-content {
                 position: relative;
                 padding: 60px 25px 0;
@@ -141,7 +157,6 @@ $taskMarginBottom: 10px;
                     top: -($taskMarginBottom + $taskBarMarginBottom);
                     & > .task {
                         @include fix-transform-scale;
-                        @include shadow-less;
                         cursor: pointer;
                         position: relative;
                         transform-origin: bottom center;

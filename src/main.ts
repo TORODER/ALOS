@@ -5,8 +5,9 @@ import "./scss/global.scss";
 import axios from "axios";
 import { OSTaskBuilder, osTaskManage, TaskType } from "./core/service/os-task-manage";
 import { osPackageDescription } from "./core/package/os.package";
+import { late } from "./core/utils/async";
 axios.defaults.withCredentials = true
 createApp(Root).use(router).mount("#app");
-
 osTaskManage.addTask(OSTaskBuilder.createWindowFrameTask(osPackageDescription, { "startUrl": "https://www.bing.com/?mkt=zh-CN" }));
 osTaskManage.addTask(OSTaskBuilder.createWindowFrameTask(osPackageDescription, { "startUrl": "https://www.bing.com/?mkt=zh-CN" }));
+late(() => osTaskManage.addTask(OSTaskBuilder.createWindowFrameTask(osPackageDescription, { "startUrl": "https://www.bing.com/?mkt=zh-CN" })), 1000);

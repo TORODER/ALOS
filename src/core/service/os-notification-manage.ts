@@ -1,5 +1,5 @@
 import { reactive, Ref, ref } from "vue";
-import { buildUUID } from "../easy-uuid";
+import { buildUUID } from "../utils/easy-uuid";
 
 class OSNotificationManage {
 
