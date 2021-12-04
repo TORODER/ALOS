@@ -1,5 +1,5 @@
 // * ALOS 操作系统 Package 
-export const osPackageDescription = {
+export const osPackageDescription:FrameAppDescription = {
     "icon": {
         "logo": "/public/images/vue.png",
         "taskbar": "/public/images/vue.png",
@@ -8,5 +8,10 @@ export const osPackageDescription = {
         "EN": "ALOS",
         "ZH_CN": "ALOS"
     },
-    "packageID": "dev.alos"
+    "packageID": "dev.alos",
+    framePageIndex: {
+        "default":{
+            "startUrl":"https://www.bing.com/?mkt=zh-CN"
+        }
+    }
 };

@@ -15,3 +15,16 @@ interface AppDescription {
     icon: Partial<Record<AppDescriptionIconType, string>> & { "logo": string }
 }
 
+interface AppDescriptionNeedIndex<T>{
+    default:T
+}
+
+interface FrameAppDescription extends AppDescription {
+    framePageIndex:Record<string,WindowFrameModeConfig>&AppDescriptionNeedIndex<WindowFrameModeConfig>
+}
+
+
+interface ComponentAppDescription extends AppDescription {
+    componentPageIndex:Record<string,WindowComponentModeConfig>&AppDescriptionNeedIndex<WindowComponentModeConfig>
+}
+

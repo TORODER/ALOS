@@ -1,5 +1,5 @@
-import { HttpPackageCode } from "../config";
+import { apiCodeDescribe, HttpPackageCode } from "../../api/config";
 
-export function requestPackageOk(r: repInstance<any>): boolean {
-    return r.code == HttpPackageCode.OK;
+export function requestPackageOk(requestPackage: repInstance<any>) {
+    return requestPackage.code == HttpPackageCode.OK;
 }

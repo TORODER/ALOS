@@ -1,8 +1,6 @@
-import { DefineComponent } from "vue";
+import { DefineComponent, Ref, ShallowReactive, ShallowUnwrapRef } from "vue";
 import { TaskType } from "../core/service/os-task-manage";
 import { WindowMode } from "../core/service/window-manage";
-
-
 
 declare global {
 
@@ -20,33 +18,26 @@ declare global {
         type: TaskType
     }
 
+    interface WindowTask extends Task {
+        type: TaskType.window,
+        windowMode: WindowMode,
+        config: WindowComponentModeConfig | WindowFrameModeConfig
+    }
 
     interface WindowFrameModeConfig {
         startUrl: string,
     }
 
-
     interface WindowComponentModeConfig {
-        component: DefineComponent,
+        component: Ref<DefineComponent>,
     }
-
-
-
-    interface WindowTask extends Task {
-        type: TaskType.window,
-        windowMode: WindowMode,
-        config: WindowComponentModeConfig|WindowFrameModeConfig
-    }
-
 
     interface WindowFrameTask extends WindowTask {
-        type: TaskType.window,
         windowMode: WindowMode.frame,
         config: WindowFrameModeConfig
     }
 
     interface WindowComponentTask extends WindowTask {
-        type: TaskType.window,
         windowMode: WindowMode.component,
         config: WindowComponentModeConfig
     }

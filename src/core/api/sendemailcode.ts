@@ -21,8 +21,3 @@ export default async (email: string) => {
     const data = (await axios(config)).data as repInstance<loginData>;
     return data
 };
-
-
-
-
-

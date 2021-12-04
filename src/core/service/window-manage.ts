@@ -1,3 +1,4 @@
+import { isObject } from "@vue/shared";
 import { reactive } from "vue";
 import { Listener, ListenerEvent } from "../listener";
 import { late } from "../utils/async";
@@ -9,27 +10,50 @@ interface DockElem {
 };
 
 export const defZindex = 2;
-export class ALOSWindow {
-    task: WindowTask;
+
+export interface ALOSWindowPositionAttr {
     x: number;
     y: number;
     width: number;
     height: number;
     zIndex: number;
-    constructor(task: WindowTask, x?: number, y?: number, width?: number, height?: number) {
-        this.x = 100;
-        this.y = 100
-        this.width = 100;
-        this.height = 100;
-        this.task = task
-        this.zIndex = 2;
+}
+
+export class ALOSWindowPosition implements ALOSWindowPositionAttr {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    zIndex: number;
+    constructor(x?: number, y?: number, width?: number, height?: number, index?: number) {
+        this.x = x ?? 100;
+        this.y = y ?? 100
+        this.width = width ?? 100;
+        this.height = height ?? 100;
+        this.zIndex = index ?? 2;
     }
+    copyPositionAttr = (): ALOSWindowPositionAttr => {
+        return Object.assign({}, this);
+    }
+    setPositionAttr(alosWindowPositionAttr: ALOSWindowPositionAttr) {
+        Object.assign(this, alosWindowPositionAttr);
+    }
+}
+
+export class ALOSWindow extends ALOSWindowPosition {
+    task: WindowTask;
+    oldALOSWindowPosition?: ALOSWindowPositionAttr;
+    constructor(task: WindowTask, x?: number, y?: number, width?: number, height?: number) {
+        super(x, y, width, height);
+        this.task = task
+    }
+
 }
 
 /**
  * * 窗口管理器
  */
-class WindowsManage extends Listener<undefined> {
+class WindowsManage extends Listener<ListenerEvent<WindowsManageEventType, Task>> {
     windowTasks: Set<Task>;
     dockElemMap: PIDMap<DockElem>;
     alosWindowMap: PIDMap<ALOSWindow>;
@@ -50,6 +74,25 @@ class WindowsManage extends Listener<undefined> {
             v.zIndex = i;
         })
     }
+    windowToFullScreen = (alosWindow: ALOSWindow) => {
+        if (
+            alosWindow.x != 0 ||
+            alosWindow.y != 0 ||
+            alosWindow.width != window.innerWidth ||
+            alosWindow.height != window.innerHeight
+        ) {
+            alosWindow.oldALOSWindowPosition = alosWindow.copyPositionAttr();
+            alosWindow.x = 0;
+            alosWindow.y = 0;
+            alosWindow.width = window.innerWidth;
+            alosWindow.height = window.innerHeight;
+        } else {
+            if (alosWindow.oldALOSWindowPosition != undefined) {
+                alosWindow.setPositionAttr(alosWindow.oldALOSWindowPosition);
+                alosWindow.oldALOSWindowPosition = undefined;
+            }
+        }
+    }
 
     private onTaskManageEvent = (v: ListenerEvent<TaskManageEvent, Task>) => {
         console.log(v, this);
@@ -60,13 +103,13 @@ class WindowsManage extends Listener<undefined> {
                     this.windowTasks.add(windowTask);
                     this.dockElemMap.set(windowTask.pid, this.rawCreateDockElem(windowTask));
                     this.alosWindowMap.set(windowTask.pid, new ALOSWindow(windowTask));
-                    this.pushNotice(undefined);
+                    this.pushNotice({ event: WindowsManageEventType.add, data: windowTask });
                     break;
                 case TaskManageEvent.delete:
                     this.windowTasks.delete(windowTask);
                     this.dockElemMap.delete(windowTask.pid);
                     this.alosWindowMap.delete(windowTask.pid);
-                    this.pushNotice(undefined);
+                    this.pushNotice({ event: WindowsManageEventType.del, data: windowTask });
                     break;
             }
         }
@@ -81,6 +124,10 @@ class WindowsManage extends Listener<undefined> {
 
 }
 
+export enum WindowsManageEventType {
+    del = "del",
+    add = "add"
+}
 
 export enum WindowMode {
     frame = "frame",

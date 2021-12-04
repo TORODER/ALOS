@@ -13,7 +13,7 @@ export const router = createRouter({
     routes: [
         {
             path: "/",
-            redirect: "/start"
+            redirect: "/desktop"
         },
         {
             path: "/start",

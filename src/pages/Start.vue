@@ -21,8 +21,6 @@ if(userManage.loginUser.value!=undefined){
     toDesktop();
 }else{
     toSignIn();
-    console.log();
-    
 }
 
 </script>

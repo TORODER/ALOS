@@ -62,19 +62,6 @@ class OSTaskManage extends Listener<ListenerEvent<TaskManageEvent, Task>> {
     }
 
 
-    /**
-     * ! 即将废弃 ⚠️ 使用 [addTask] 和 [OSTaskBuilder] 代替
-     */
-    create = (appDescription: AppDescription, type: TaskType): Task => {
-        const newT: Task = reactive({
-            "packageID": appDescription.packageID,
-            "pid": buildPID(appDescription),
-            "type": type
-        });
-        this.rawAddTask(newT);
-        return this.taskMap.get(newT.pid)!;
-    }
-
     addTask = (task: Task) => {
         this.rawAddTask(reactive(task));
     }
@@ -93,10 +80,7 @@ class OSTaskManage extends Listener<ListenerEvent<TaskManageEvent, Task>> {
     selectTasksFromTaskType = (taskType: TaskType): PIDTaskMap => {
         return osTaskTypeManage.select(taskType);
     }
-
 }
-
-
 
 export namespace OSTaskBuilder {
 
@@ -109,6 +93,19 @@ export namespace OSTaskBuilder {
             config: frameConfig
         };
     }
+
+
+    export const createWindowComponentTask = (appDescription: AppDescription, componentConfig: WindowComponentModeConfig): WindowComponentTask => {
+        componentConfig.component = componentConfig.component
+        return {
+            packageID: appDescription.packageID,
+            pid: buildPID(appDescription),
+            type: TaskType.window,
+            windowMode: WindowMode.component,
+            config: componentConfig
+        };
+    }
+
 
 }
 

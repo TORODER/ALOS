@@ -21,19 +21,24 @@
                     @mouseleave.self="taskbarMoveAnimation(undefined)"
                 >
                     <div class="task-row">
-                        <div
-                            class="task"
-                            :ref="(e) => handelTaskDoms(e as any, dockElem.task)"
-                            :key="dockElem.task.pid"
-                            :style="{
-                                transform: `scale(${1 + dockElem.scale * scaleMax}) translateZ(0) translateY(${dockElem.scale * translateYMax}px)`
-                            }"
-                            v-for="[dockElemKey, dockElem] in dockElemMap"
-                        >
-                            <img
-                                :src="osPackageManage.getAppDescription(dockElem.task.packageID)!.icon.taskbar"
-                            />
-                        </div>
+                        <transition-group name="taskbarTaskTransition">
+                            <div
+                                class="task"
+                                v-for="[dockElemKey, dockElem] in dockElemMap"
+                                :key="dockElem.task.pid"
+                                :ref="(e) => handelTaskDoms(e as any, dockElem.task)"
+                                @click="() => handelOnClickTaskbarTask(dockElem.task.pid)"
+                                :style="taskStyle as any"
+                            >
+                                <img
+                                    :style="{
+                                        transform: `scale(${1 + dockElem.scale * scaleMax}) translateZ(0) translateY(${dockElem.scale * translateYMax}px)`
+                                    }"
+                                    :src="osPackageManage.getAppDescription(dockElem.task.packageID)!.icon.taskbar"
+                                />
+                                <div class="presence-indicator"></div>
+                            </div>
+                        </transition-group>
                     </div>
                     <div
                         class="taskbar"
@@ -51,19 +56,22 @@ import { OSTaskBuilder, osTaskManage, TaskType } from '../core/service/os-task-m
 import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { osPackageDescription } from '../core/package/os.package';
 import { osPackageManage } from '../core/service/os-package-manage';
-import { windowsManage } from '../core/service/window-manage';
+import { windowsManage, WindowsManageEventType } from '../core/service/window-manage';
 import { imagePath } from '../public';
 import OSWindowsLayer from "../components/OSWindowsLayer.vue"
-import { late } from '../core/utils/async';
+import { late, lateDuration } from '../core/utils/async';
+import { ListenerEvent } from '../core/listener';
 const backgroundImage = ref(`${imagePath}background.jpg`);
 const dockElemMap = windowsManage.dockElemMap;
-const scaleMax = .3;
-const translateYMax = -18;
+const scaleMax = .28;
+const translateYMax = -12;
 const taskBarRef = ref();
 const taskBarLeft = ref<number | undefined>(undefined);
 const taskBarWidth = ref<number | undefined>(undefined);
 const taskDoms: PIDMap<Element> = new Map();
-
+const taskStyle = {
+    "--duration": 300
+};
 function handelTaskDoms(dom: Element | null, task: Task) {
     if (dom != null) {
         taskDoms.set(task.pid, dom);
@@ -92,15 +100,37 @@ function relayoutTaskBar() {
     const left = (window.innerWidth - getTaskBarWidth) / 2;
     taskBarWidth.value = getTaskBarWidth;
     taskBarLeft.value = left;
-    console.log(taskBarRef.value);
 }
+
+function handelOnClickTaskbarTask(pid: string) {
+    const setToTopWindow = windowsManage.alosWindowMap.get(pid);
+    if (setToTopWindow != undefined) {
+        windowsManage.windowToTopLayer(setToTopWindow);
+    }
+}
+
+function handelWindowManageEvent(event: ListenerEvent<WindowsManageEventType, Task>) {
+    switch (event.event) {
+        case WindowsManageEventType.add:
+            relayoutTaskBar();
+            break;
+        case WindowsManageEventType.del:
+            late(() => relayoutTaskBar(), taskStyle['--duration'] + 10);
+            late(() => relayoutTaskBar(), taskStyle['--duration'] + 200);
+            break;
+    }
+}
+
+const handelWindowResize = lateDuration(() => relayoutTaskBar(), 150);
 
 onMounted(() => {
     relayoutTaskBar();
-    windowsManage.addListener(relayoutTaskBar)
+    windowsManage.addListener(handelWindowManageEvent)
+    window.addEventListener("resize", handelWindowResize);
 })
-onUnmounted(()=>{
-    windowsManage.removeListener(relayoutTaskBar)
+onUnmounted(() => {
+    windowsManage.removeListener(handelWindowManageEvent)
+    window.removeEventListener("resize", handelWindowResize);
 });
 </script>
 
@@ -113,9 +143,22 @@ onUnmounted(()=>{
 @import "/src/scss/background.scss";
 
 $taskBarMarginBottom: 10px;
-$taskSize: 50px;
+$taskSize: 48px;
 $taskbarHeight: $taskSize + $taskBarMarginBottom * 2;
 $taskMarginBottom: 10px;
+
+.taskbarTaskTransition-leave-active {
+    transition: all none ease !important;
+    .task {
+        transition-duration: var(--duration) !important;
+    }
+}
+
+.taskbarTaskTransition-leave-to {
+    transform: scale(0.3);
+    opacity: 0;
+}
+
 .desktop-box {
     & > .background-image {
         @include position-fixed-fill;
@@ -159,17 +202,28 @@ $taskMarginBottom: 10px;
                         @include fix-transform-scale;
                         cursor: pointer;
                         position: relative;
-                        transform-origin: bottom center;
-                        transition: all 0.05s linear;
+                        z-index: 1;
                         filter: drop-shadow(2px 4px 6px #0004);
                         width: $taskSize;
                         height: $taskSize;
-                        margin: 0 12px;
-                        z-index: 1;
+                        margin: 0 10px;
+                        padding-bottom: 5px;
                         img {
                             width: 100%;
                             height: 100%;
                             object-fit: contain;
+                            transform-origin: bottom center;
+                            transition: all 0.05s linear;
+                        }
+                        .presence-indicator {
+                            @include shadow-less;
+                            position: absolute;
+                            bottom: -5px;
+                            width: 5px;
+                            height: 5px;
+                            background-color: #fff8;
+                            border-radius: 100%;
+                            left: calc(50% - 2.5px);
                         }
                     }
                 }

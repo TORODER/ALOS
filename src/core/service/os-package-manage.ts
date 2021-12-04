@@ -1,4 +1,5 @@
 import { WarnAppPackage } from "../debug/warn";
+import { blogPackageDescription } from "../package/blog.package";
 import { osPackageDescription } from "../package/os.package";
 
 class OSPackageManage {
@@ -23,3 +24,4 @@ class OSPackageManage {
 export const osPackageManage = new OSPackageManage();
 
 osPackageManage.register(osPackageDescription)
+osPackageManage.register(blogPackageDescription)
