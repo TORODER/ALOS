@@ -18,7 +18,11 @@ class OSPackageManage {
     getAppDescription = (packageID: PackageID): AppDescription | undefined => {
         return this.packageMap.get(packageID);
     }
-    
+
+    getALLAppDescription() {
+        return Array.from(this.packageMap.values());
+    }
+
 }
 
 export const osPackageManage = new OSPackageManage();

@@ -4,21 +4,29 @@
             class="alos-window"
             v-for="value,uuid in alosWindows "
             :style="{
-                left: `${value.x}px`,
-                top: `${value.y}px`,
-                width: `${value.width}px`,
-                height: `${value.height}px`,
-                zIndex: value.zIndex
+                zIndex: value.zIndex,
+                ...value.toPosStyle()
             }"
+            @mousedown="(e) => handelDownWindow(e, value, undefined)"
             :key="value.task.pid"
-            @mousedown="(e) => handelDownWindow(e, value, MouseConState.windowMove)"
         >
-            <div class="alos-window-ui-box">
-                <div class="alos-window-state-bar">
+            <div
+                class="alos-window-ui-box"
+                :class="[value.task.config.showWindowBorder ? `border` : ``, value.task.config.showWindowBorder ? `use-statebar` : `no-statebar`]"
+            >
+                <div
+                    class="alos-window-state-bar"
+                    @mousedown.self="(e) => handelDownWindow(e, value, MouseConState.windowMove)"
+                    @dblclick.self="(e) => handelFullScreenWindow(value)"
+                >
                     <div class="alos-window-button close" @click="(e) => handelCloseWindow(value)"></div>
                     <div class="alos-window-button mini"></div>
-                    <div class="alos-window-button big" @click="(e) => handelFullScreenWindow(value)"></div>
+                    <div
+                        class="alos-window-button big"
+                        @click="(e) => handelFullScreenWindow(value)"
+                    ></div>
                 </div>
+
                 <div v-if="value.task.windowMode == WindowMode.frame" class="alos-window-frame">
                     <iframe :src="(value.task.config as WindowFrameModeConfig).startUrl"></iframe>
                     <div
@@ -34,8 +42,20 @@
                 </div>
             </div>
             <div
-                @mousedown.stop="(e) => handelDownWindow(e, value, MouseConState.sizeCon)"
-                class="alos-window-size-con"
+                @mousedown.stop="(e) => handelDownWindow(e, value, MouseConState.sizeConBR)"
+                class="alos-window-size-con br"
+            ></div>
+            <div
+                @mousedown.stop="(e) => handelDownWindow(e, value, MouseConState.sizeConBL)"
+                class="alos-window-size-con bl"
+            ></div>
+            <div
+                @mousedown.stop="(e) => handelDownWindow(e, value, MouseConState.sizeConTL)"
+                class="alos-window-size-con tl"
+            ></div>
+            <div
+                @mousedown.stop="(e) => handelDownWindow(e, value, MouseConState.sizeConTR)"
+                class="alos-window-size-con tr"
             ></div>
         </div>
     </transition-group>
@@ -47,15 +67,34 @@ import { Ref, ref, shallowRef } from 'vue';
 import { osTaskManage, TaskManageEvent } from '../core/service/os-task-manage';
 import { ALOSWindow, defZindex, WindowMode, windowsManage } from '../core/service/window-manage';
 enum MouseConState {
-    sizeCon,
+    sizeConBR,
+    sizeConBL,
+    sizeConTR,
+    sizeConTL,
     windowMove
 }
 function handelMoveWindow(event: MouseEvent) {
     if (activeALOSWindow.value != undefined) {
         switch (mouseConState.value) {
-            case MouseConState.sizeCon:
+            case MouseConState.sizeConBR:
                 activeALOSWindow.value.width += event.movementX;
                 activeALOSWindow.value.height += event.movementY;
+                break;
+            case MouseConState.sizeConBL:
+                activeALOSWindow.value.x += event.movementX;
+                activeALOSWindow.value.height += event.movementY;
+                activeALOSWindow.value.width += -event.movementX;
+                break;
+            case MouseConState.sizeConTR:
+                activeALOSWindow.value.width += event.movementX;
+                activeALOSWindow.value.y += event.movementY;
+                activeALOSWindow.value.height += -event.movementY;
+                break;
+            case MouseConState.sizeConTL:
+                activeALOSWindow.value.x += event.movementX;
+                activeALOSWindow.value.y += event.movementY;
+                activeALOSWindow.value.width += -event.movementX;
+                activeALOSWindow.value.height += -event.movementY;
                 break;
             case MouseConState.windowMove:
                 activeALOSWindow.value.x += event.movementX;
@@ -76,10 +115,12 @@ function handelUpWindow(event: MouseEvent) {
     mouseConState.value = undefined;
 }
 
-function handelDownWindow(event: MouseEvent, alosWindow: ALOSWindow, mstate: MouseConState) {
+function handelDownWindow(event: MouseEvent, alosWindow: ALOSWindow, mstate: MouseConState | undefined) {
     windowsManage.windowToTopLayer(alosWindow);
     (activeALOSWindow.value as ALOSWindow) = alosWindow;
-    mouseConState.value = mstate;
+    if (mstate != undefined) {
+        mouseConState.value = mstate;
+    }
 }
 
 function handelCloseWindow(alosWindow: ALOSWindow) {
@@ -135,14 +176,29 @@ $windowBarHeight: 24px;
     * {
         transition: none;
     }
-
     .alos-window-ui-box {
         @include position-fill;
         @include alos-window-shadow;
         position: absolute;
         border-radius: 8px;
         overflow: hidden;
-        border: 1px solid #fff;
+
+        &.use-statebar {
+            & > .alos-window-frame,
+            & > .alos-window-component {
+                top: $windowBarHeight !important;
+            }
+        }
+        &.no-statebar {
+            .alos-window-state-bar {
+                display: none !important;
+            }
+        }
+
+        &.border {
+            border: 1px solid #fff;
+        }
+
         & > .alos-window-state-bar {
             height: $windowBarHeight;
             width: 100%;
@@ -166,15 +222,15 @@ $windowBarHeight: 24px;
                 }
             }
         }
+
         & > .alos-window-frame,
         & > .alos-window-component {
             @include position-fill;
             position: absolute;
-            top: $windowBarHeight !important;
-            background-color: #fff;
         }
 
         & > .alos-window-frame {
+            background-color: #fff;
             iframe {
                 border: 0;
                 width: 100%;
@@ -192,9 +248,26 @@ $windowBarHeight: 24px;
         width: $windowSizeCon;
         height: $windowSizeCon;
         z-index: 999;
-        right: $windowSizeConPos;
-        bottom: $windowSizeConPos;
-        cursor: nwse-resize;
+        &.br {
+            cursor: nwse-resize;
+            right: $windowSizeConPos;
+            bottom: $windowSizeConPos;
+        }
+        &.tl {
+            cursor: nw-resize;
+            left: $windowSizeConPos;
+            top: $windowSizeConPos;
+        }
+        &.tr {
+            cursor: ne-resize;
+            right: $windowSizeConPos;
+            top: $windowSizeConPos;
+        }
+        &.bl {
+            cursor: sw-resize;
+            bottom: $windowSizeConPos;
+            left: $windowSizeConPos;
+        }
     }
 }
 </style>

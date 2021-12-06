@@ -17,9 +17,9 @@ import { imagePath } from '../public';
 import { toDesktop, toSignIn } from '../router';
 const backgroundImage = ref(`${imagePath}background.jpg`);
 
-if(userManage.loginUser.value!=undefined){
+if (userManage.loginUser.value != undefined) {
     toDesktop();
-}else{
+} else {
     toSignIn();
 }
 

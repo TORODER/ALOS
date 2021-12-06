@@ -1,5 +1,5 @@
 import { DefineComponent, shallowRef } from "vue";
-import start from "./starter/Start.vue";
+import start from "./starter/Starter.vue";
 
 export const starterPackageDescription: ComponentAppDescription = {
     "icon": {
@@ -14,6 +14,15 @@ export const starterPackageDescription: ComponentAppDescription = {
     componentPageIndex: {
         "default": {
             "component": shallowRef(start as DefineComponent),
+            "showWindowStateBar": false,
+            "showWindowBorder": false,
+            defaultPositionType: "pos",
+            defaultPosition: {
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
+            }
         }
     }
 };

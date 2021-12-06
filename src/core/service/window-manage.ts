@@ -1,9 +1,11 @@
 import { isObject } from "@vue/shared";
+import { __ } from "ramda";
 import { reactive } from "vue";
 import { Listener, ListenerEvent } from "../listener";
-import { late } from "../utils/async";
+import { interval, late } from "../utils/async";
+import { MathUtils } from "../utils/math";
 import { osTaskManage, TaskManageEvent, TaskType } from "./os-task-manage";
-
+export type PositionType = "pos" | "size" | "posSize";
 interface DockElem {
     task: Task,
     scale: number,
@@ -22,15 +24,19 @@ export interface ALOSWindowPositionAttr {
 export class ALOSWindowPosition implements ALOSWindowPositionAttr {
     x: number;
     y: number;
+    bottom: number | undefined;
+    right: number | undefined;
     width: number;
     height: number;
     zIndex: number;
-    constructor(x?: number, y?: number, width?: number, height?: number, index?: number) {
+    constructor(x?: number, y?: number, width?: number, height?: number, index?: number, bottom?: number, right?: number) {
         this.x = x ?? 100;
         this.y = y ?? 100
         this.width = width ?? 100;
         this.height = height ?? 100;
-        this.zIndex = index ?? 2;
+        this.zIndex = index ?? defZindex;
+        this.bottom = bottom;
+        this.right = right;
     }
     copyPositionAttr = (): ALOSWindowPositionAttr => {
         return Object.assign({}, this);
@@ -44,8 +50,62 @@ export class ALOSWindow extends ALOSWindowPosition {
     task: WindowTask;
     oldALOSWindowPosition?: ALOSWindowPositionAttr;
     constructor(task: WindowTask, x?: number, y?: number, width?: number, height?: number) {
-        super(x, y, width, height);
-        this.task = task
+        super();
+        this.task = task;
+        switch (task.config.defaultPositionType) {
+            case "pos": {
+                const pos = task.config.defaultPosition as PositionLTRB;
+                this.x = pos.left;
+                this.y = pos.top;
+                this.bottom = pos.bottom;
+                this.right = pos.right;
+            }
+                break;
+            case "posSize":
+                {
+                    const pos = task.config.defaultPosition as PositionLTWH;
+                    this.x = pos.left;
+                    this.y = pos.top;
+                    this.width = pos.width;
+                    this.height = pos.height;
+                }
+                break;
+            case "size":
+                {
+                    const pos = task.config.defaultPosition as PositionSize;
+                    this.width = pos.width;
+                    this.height = pos.height;
+                }
+                break;
+        }
+    }
+
+    toPosStyle() {
+        switch (this.task.config.defaultPositionType) {
+            case "pos":
+                return {
+                    left: this.x,
+                    top: this.y,
+                    right: this.right,
+                    bottom: this.bottom,
+                };
+            case "posSize":
+                return {
+                    left: this.x,
+                    top: this.y,
+                    width: this.width,
+                    height: this.height,
+                };
+            case "size":
+                return {
+                    left: window.innerWidth / 2 - this.width / 2,
+                    top: window.innerHeight / 2 - this.height / 2,
+                    width: this.width,
+                    height: this.height,
+                }
+        }
+        return {
+        };
     }
 
 }
@@ -74,28 +134,44 @@ class WindowsManage extends Listener<ListenerEvent<WindowsManageEventType, Task>
             v.zIndex = i;
         })
     }
+
     windowToFullScreen = (alosWindow: ALOSWindow) => {
         if (
             alosWindow.x != 0 ||
             alosWindow.y != 0 ||
             alosWindow.width != window.innerWidth ||
-            alosWindow.height != window.innerHeight
+            alosWindow.height != window.innerHeight - 80
         ) {
             alosWindow.oldALOSWindowPosition = alosWindow.copyPositionAttr();
-            alosWindow.x = 0;
-            alosWindow.y = 0;
-            alosWindow.width = window.innerWidth;
-            alosWindow.height = window.innerHeight;
+            this.windowResizeAnimation(alosWindow, {
+                x: 0,
+                y: 0,
+                width: window.innerWidth,
+                height: window.innerHeight - 80,
+                zIndex: defZindex
+            });
         } else {
             if (alosWindow.oldALOSWindowPosition != undefined) {
-                alosWindow.setPositionAttr(alosWindow.oldALOSWindowPosition);
+                console.log(alosWindow.oldALOSWindowPosition);
+                this.windowResizeAnimation(alosWindow, alosWindow.oldALOSWindowPosition);
                 alosWindow.oldALOSWindowPosition = undefined;
             }
         }
     }
 
+
+    private windowResizeAnimation = (alosWindow: ALOSWindow, windowConfig: ALOSWindowPositionAttr) => {
+        const xSpeed = (alosWindow.x - windowConfig.x) / 12;
+        const ySpeed = (alosWindow.y - windowConfig.y) / 12;
+        const WidthSpeed = (windowConfig.width - alosWindow.width) / 12;
+        const HeightSpeed = (windowConfig.height - alosWindow.height) / 12;
+        interval(alosWindow.x, windowConfig.x, (a, b) => a + MathUtils.autoRange(-xSpeed, xSpeed, b - a), (v) => alosWindow.x = v, undefined, undefined, (a, b) => a == b);
+        interval(alosWindow.y, windowConfig.y, (a, b) => a + MathUtils.autoRange(-ySpeed, ySpeed, b - a), (v) => alosWindow.y = v, undefined, undefined, (a, b) => a == b);
+        interval(alosWindow.width, windowConfig.width, (a, b) => a + MathUtils.autoRange(-WidthSpeed, WidthSpeed, b - a), (v) => alosWindow.width = v, undefined, undefined, (a, b) => a == b);
+        interval(alosWindow.height, windowConfig.height, (a, b) => a + MathUtils.autoRange(-HeightSpeed, HeightSpeed, b - a), (v) => alosWindow.height = v, undefined, undefined, (a, b) => a == b);
+    }
+
     private onTaskManageEvent = (v: ListenerEvent<TaskManageEvent, Task>) => {
-        console.log(v, this);
         if (v.data.type == TaskType.window) {
             const windowTask = v.data as WindowTask;
             switch (v.event) {

@@ -21,9 +21,7 @@ import { getPackageIcon } from "../core/package";
 
 const getNotificationIcon = (appDescription: AppDescription) => getPackageIcon(["simplify", "logo"], appDescription);
 
-const { notification } = defineProps<{
-    notification: OSNotification
-}>();
+const { notification } = defineProps<{ notification: OSNotification }>();
 
 </script>
 <style lang="scss" scoped>

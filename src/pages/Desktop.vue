@@ -3,7 +3,7 @@
         <div
             class="background-image"
             :style="{
-                'background-image': `url('${backgroundImage}')`
+                'background-image': `url('${osDesktopBackround}')`
             }"
         ></div>
         <div class="desktop-windows-container">
@@ -28,7 +28,7 @@
                                 :key="dockElem.task.pid"
                                 :ref="(e) => handelTaskDoms(e as any, dockElem.task)"
                                 @click="() => handelOnClickTaskbarTask(dockElem.task.pid)"
-                                :style="taskStyle as any"
+                                :style="(taskStyle as any)"
                             >
                                 <img
                                     :style="{
@@ -51,17 +51,16 @@
         </div>
     </div>
 </template>
-<script setup lang="ts" >
-import { OSTaskBuilder, osTaskManage, TaskType } from '../core/service/os-task-manage';
+<script setup lang="ts">
 import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
-import { osPackageDescription } from '../core/package/os.package';
 import { osPackageManage } from '../core/service/os-package-manage';
 import { windowsManage, WindowsManageEventType } from '../core/service/window-manage';
 import { imagePath } from '../public';
 import OSWindowsLayer from "../components/OSWindowsLayer.vue"
 import { late, lateDuration } from '../core/utils/async';
 import { ListenerEvent } from '../core/listener';
-const backgroundImage = ref(`${imagePath}background.jpg`);
+import { osSettingManage } from "../core/service/os-setting-manage";
+const osDesktopBackround = osSettingManage.desktopBackground;
 const dockElemMap = windowsManage.dockElemMap;
 const scaleMax = .28;
 const translateYMax = -12;
@@ -69,9 +68,8 @@ const taskBarRef = ref();
 const taskBarLeft = ref<number | undefined>(undefined);
 const taskBarWidth = ref<number | undefined>(undefined);
 const taskDoms: PIDMap<Element> = new Map();
-const taskStyle = {
-    "--duration": 300
-};
+const taskStyle = { "--duration": 300 };
+
 function handelTaskDoms(dom: Element | null, task: Task) {
     if (dom != null) {
         taskDoms.set(task.pid, dom);
@@ -89,7 +87,6 @@ function taskbarMoveAnimation(e: MouseEvent | undefined) {
             const centerOffset = domRect.left + domRect.width / 2;
             domElem.scale = Math.max(1 - Math.abs((centerOffset - e.x) / 160), 0);
         } else {
-            console.log("out");
             domElem.scale = 0;
         }
     }
@@ -141,6 +138,7 @@ onUnmounted(() => {
 @import "/src/scss/utils/mixin/position.scss";
 @import "/src/scss/utils/mixin/fix.scss";
 @import "/src/scss/background.scss";
+@import "/src/scss/utils/var/var.scss";
 
 $taskBarMarginBottom: 10px;
 $taskSize: 48px;
@@ -180,7 +178,7 @@ $taskMarginBottom: 10px;
                 position: relative;
                 padding: 60px 25px 0;
                 & > .taskbar {
-                    @include shadow-less;
+                    @include shadow-high;
                     border-radius: 20px;
                     height: $taskbarHeight;
                     margin-bottom: 10px;
@@ -203,11 +201,16 @@ $taskMarginBottom: 10px;
                         cursor: pointer;
                         position: relative;
                         z-index: 1;
-                        filter: drop-shadow(2px 4px 6px #0004);
+                        filter: drop-shadow(2px 3px 6px #0002);
                         width: $taskSize;
                         height: $taskSize;
                         margin: 0 10px;
                         padding-bottom: 5px;
+                        &:active {
+                            transition-duration: $now;
+                            transition-timing-function: ease;
+                            transform: scale(0.8) !important;
+                        }
                         img {
                             width: 100%;
                             height: 100%;

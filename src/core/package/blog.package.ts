@@ -1,5 +1,5 @@
 // * Blog Web Package 
-export const blogPackageDescription:FrameAppDescription = {
+export const blogPackageDescription: FrameAppDescription = {
     "icon": {
         "logo": "/public/images/vue.png",
         "taskbar": "/public/images/hxllogo.png",
@@ -9,9 +9,16 @@ export const blogPackageDescription:FrameAppDescription = {
         "ZH_CN": "博客"
     },
     "packageID": "dev.alos.blog",
-    "framePageIndex":{
-        "default":{
-            "startUrl":"http://www.houxinlin.com:6060/"
+    "framePageIndex": {
+        "default": {
+            "startUrl": "http://www.houxinlin.com:6060/",
+            showWindowBorder: true,
+            showWindowStateBar: true,
+            defaultPositionType: "size",
+            defaultPosition: {
+                width: 500,
+                height: 300
+            }
         }
     }
 };
