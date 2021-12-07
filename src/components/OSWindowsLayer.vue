@@ -4,7 +4,6 @@
             class="alos-window"
             v-for="value,uuid in alosWindows "
             :style="{
-                zIndex: value.zIndex,
                 ...value.toPosStyle()
             }"
             @mousedown="(e) => handelDownWindow(e, value, undefined)"
@@ -38,7 +37,10 @@
                     v-else-if="value.task.windowMode == WindowMode.component"
                     class="alos-window-component"
                 >
-                    <component :is="(value.task.config as WindowComponentModeConfig).component"></component>
+                    <component
+                        :pid="value.task.pid"
+                        :is="(value.task.config as WindowComponentModeConfig).component"
+                    ></component>
                 </div>
             </div>
             <div
@@ -65,7 +67,7 @@ import { computed, reactive } from '@vue/reactivity';
 import { onMounted, onUnmounted } from '@vue/runtime-core';
 import { Ref, ref, shallowRef } from 'vue';
 import { osTaskManage, TaskManageEvent } from '../core/service/os-task-manage';
-import { ALOSWindow, defZindex, WindowMode, windowsManage } from '../core/service/window-manage';
+import { ALOSWindow, WindowMode, windowsManage } from '../core/service/window-manage';
 enum MouseConState {
     sizeConBR,
     sizeConBL,

@@ -4,14 +4,15 @@ import { reactive } from "vue";
 import { Listener, ListenerEvent } from "../listener";
 import { interval, late } from "../utils/async";
 import { MathUtils } from "../utils/math";
+import { defZindex, topFloorZIndex } from "../var";
 import { osTaskManage, TaskManageEvent, TaskType } from "./os-task-manage";
 export type PositionType = "pos" | "size" | "posSize";
+export type ZIndexType = "layoutFill" | "window";
 interface DockElem {
     task: Task,
     scale: number,
 };
 
-export const defZindex = 2;
 
 export interface ALOSWindowPositionAttr {
     x: number;
@@ -52,6 +53,14 @@ export class ALOSWindow extends ALOSWindowPosition {
     constructor(task: WindowTask, x?: number, y?: number, width?: number, height?: number) {
         super();
         this.task = task;
+        switch (task.config.defaultZIndex) {
+            case "layoutFill":
+                this.zIndex = topFloorZIndex + 2;
+                break;
+            case "window":
+                this.zIndex = defZindex;
+                break;
+        }
         switch (task.config.defaultPositionType) {
             case "pos": {
                 const pos = task.config.defaultPosition as PositionLTRB;
@@ -88,6 +97,7 @@ export class ALOSWindow extends ALOSWindowPosition {
                     top: this.y,
                     right: this.right,
                     bottom: this.bottom,
+                    zIndex: this.zIndex
                 };
             case "posSize":
                 return {
@@ -95,6 +105,7 @@ export class ALOSWindow extends ALOSWindowPosition {
                     top: this.y,
                     width: this.width,
                     height: this.height,
+                    zIndex: this.zIndex
                 };
             case "size":
                 return {
@@ -102,10 +113,9 @@ export class ALOSWindow extends ALOSWindowPosition {
                     top: window.innerHeight / 2 - this.height / 2,
                     width: this.width,
                     height: this.height,
+                    zIndex: this.zIndex
                 }
         }
-        return {
-        };
     }
 
 }
@@ -127,20 +137,36 @@ class WindowsManage extends Listener<ListenerEvent<WindowsManageEventType, Task>
     }
 
     windowToTopLayer = (alosWindow: ALOSWindow) => {
-        const alosWindowList = Array.from(this.alosWindowMap.values());
-        alosWindow.zIndex = alosWindowList.length;
-        alosWindowList.sort((a, b) => a.zIndex - b.zIndex);
-        alosWindowList.forEach((v, i) => {
-            v.zIndex = i;
-        })
+
+        // * window
+        {
+            const alosWindowList = Array.from(this.alosWindowMap.values()).filter(e => e.task.config.defaultZIndex == "window");
+            alosWindow.zIndex = alosWindowList.length;
+            alosWindowList.sort((a, b) => a.zIndex - b.zIndex);
+            alosWindowList.forEach((v, i) => {
+                v.zIndex = i;
+            });
+        }
+
+        // * layout fill 
+        {
+            const alosWindowList = Array.from(this.alosWindowMap.values()).filter(e => e.task.config.defaultZIndex == "layoutFill");
+            alosWindow.zIndex = alosWindowList.length;
+            alosWindowList.sort((a, b) => a.zIndex - b.zIndex);
+            alosWindowList.forEach((v, i) => {
+                v.zIndex = topFloorZIndex + 1 + i;
+            });
+        }
+
     }
 
     windowToFullScreen = (alosWindow: ALOSWindow) => {
         if (
-            alosWindow.x != 0 ||
-            alosWindow.y != 0 ||
-            alosWindow.width != window.innerWidth ||
-            alosWindow.height != window.innerHeight - 80
+            alosWindow.task.config.defaultZIndex == "window" &&
+            (alosWindow.x != 0 ||
+                alosWindow.y != 0 ||
+                alosWindow.width != window.innerWidth ||
+                alosWindow.height != window.innerHeight - 80)
         ) {
             alosWindow.oldALOSWindowPosition = alosWindow.copyPositionAttr();
             this.windowResizeAnimation(alosWindow, {

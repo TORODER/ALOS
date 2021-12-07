@@ -1,3 +1,4 @@
+
 // * Blog Web Package 
 export const blogPackageDescription: FrameAppDescription = {
     "icon": {
@@ -14,6 +15,7 @@ export const blogPackageDescription: FrameAppDescription = {
             "startUrl": "http://www.houxinlin.com:6060/",
             showWindowBorder: true,
             showWindowStateBar: true,
+            defaultZIndex:"window",
             defaultPositionType: "size",
             defaultPosition: {
                 width: 500,

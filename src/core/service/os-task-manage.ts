@@ -106,6 +106,16 @@ export namespace OSTaskBuilder {
         };
     }
 
+    export const createWindowTask = (appDescription: AppDescription, index: string): WindowTask | undefined => {
+        if ((appDescription as any).framePageIndex != undefined) {
+            const fAppD = appDescription as FrameAppDescription;
+            return createWindowFrameTask(fAppD, fAppD.framePageIndex[index]);
+        } else if ((appDescription as any).componentPageIndex != undefined) {
+            const fAppD = appDescription as ComponentAppDescription;
+            return createWindowComponentTask(fAppD, fAppD.componentPageIndex[index]);
+        }
+    }
+
 
 }
 

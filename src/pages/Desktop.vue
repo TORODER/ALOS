@@ -132,6 +132,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss" >
+@import "/src/scss/utils/var/var.scss";
 @import "/src/scss/space.scss";
 @import "/src/scss/utils/mixin/center.scss";
 @import "/src/scss/utils/mixin/shadow-border.scss";
@@ -173,7 +174,7 @@ $taskMarginBottom: 10px;
             justify-content: center;
             bottom: 0;
             transition: all 0.4s;
-            z-index: 9999999;
+            z-index: $topFloorZIndex;
             .taskbar-content {
                 position: relative;
                 padding: 60px 25px 0;

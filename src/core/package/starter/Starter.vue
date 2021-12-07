@@ -17,11 +17,16 @@
 
 <script lang="ts" setup>
 import { osPackageManage } from '../../service/os-package-manage';
+import { osTaskManage, OSTaskBuilder } from '../../service/os-task-manage';
 const appDescriptions = osPackageManage.getALLAppDescription();
-const { } = defineProps<{
-    pid: string
-}>()
-
+const { pid } = defineProps<{ pid: string }>();
+console.log("pid:", pid);
+function startApp(packageID: string) {
+    const appDescription=osPackageManage.getAppDescription(packageID);
+    
+    osTaskManage.remove(pid);
+    // osTaskManage.addTask()
+}
 </script>
 <style lang="scss">
 .start {

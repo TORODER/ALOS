@@ -15,6 +15,7 @@ export const osPackageDescription: FrameAppDescription = {
             showWindowBorder: true,
             showWindowStateBar: true,
             defaultPositionType: "size",
+            defaultZIndex: "window",
             defaultPosition: {
                 width: 500,
                 height: 300

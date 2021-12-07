@@ -1,6 +1,5 @@
 type PackageID = string;
 
-
 type AppDescriptionIconType = "task" | "taskbar" | "window" | "logo" | "simplify";
 
 interface AppDescription {
@@ -15,16 +14,14 @@ interface AppDescription {
     icon: Partial<Record<AppDescriptionIconType, string>> & { "logo": string }
 }
 
-interface AppDescriptionNeedIndex<T>{
-    default:T
-}
+interface AppDescriptionNeedIndex<T> { default: T }
+
+type ViewPageIndex<T extends WindowTaskConfig> = Record<string, T> & AppDescriptionNeedIndex<T>;
 
 interface FrameAppDescription extends AppDescription {
-    framePageIndex:Record<string,WindowFrameModeConfig>&AppDescriptionNeedIndex<WindowFrameModeConfig>
+    framePageIndex: ViewPageIndex<WindowFrameModeConfig>,
 }
-
 
 interface ComponentAppDescription extends AppDescription {
-    componentPageIndex:Record<string,WindowComponentModeConfig>&AppDescriptionNeedIndex<WindowComponentModeConfig>
+    componentPageIndex: ViewPageIndex<WindowComponentModeConfig>,
 }
-

@@ -17,6 +17,7 @@ export const starterPackageDescription: ComponentAppDescription = {
             "showWindowStateBar": false,
             "showWindowBorder": false,
             defaultPositionType: "pos",
+            defaultZIndex: "layoutFill",
             defaultPosition: {
                 top: 0,
                 bottom: 0,

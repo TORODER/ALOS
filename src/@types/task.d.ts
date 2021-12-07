@@ -1,6 +1,6 @@
 import { DefineComponent, Ref, ShallowReactive, ShallowUnwrapRef } from "vue";
 import { TaskType } from "../core/service/os-task-manage";
-import { PositionType, WindowMode } from "../core/service/window-manage";
+import { PositionType, WindowMode, ZIndexType } from "../core/service/window-manage";
 
 declare global {
 
@@ -24,7 +24,6 @@ declare global {
         config: WindowComponentModeConfig | WindowFrameModeConfig
     }
 
-
     interface PositionSize {
         width: number,
         height: number
@@ -46,7 +45,8 @@ declare global {
         showWindowStateBar: boolean,
         showWindowBorder: boolean,
         defaultPositionType: PositionType,
-        defaultPosition: PositionSize | PositionLTWH | PositionLTRB
+        defaultPosition: PositionSize | PositionLTWH | PositionLTRB,
+        defaultZIndex: ZIndexType,
     }
 
 
@@ -56,8 +56,8 @@ declare global {
 
     interface WindowComponentModeConfig extends WindowTaskConfig {
         component: Ref<DefineComponent>,
-
     }
+
 
     interface WindowFrameTask extends WindowTask {
         windowMode: WindowMode.frame,
