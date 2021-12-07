@@ -1,7 +1,7 @@
-import { isObject } from "@vue/shared";
 import { __ } from "ramda";
 import { reactive } from "vue";
 import { Listener, ListenerEvent } from "../listener";
+import { starterPackageDescription } from "../package/starter.package";
 import { interval, late } from "../utils/async";
 import { MathUtils } from "../utils/math";
 import { defZindex, topFloorZIndex } from "../var";
@@ -82,6 +82,8 @@ export class ALOSWindow extends ALOSWindowPosition {
             case "size":
                 {
                     const pos = task.config.defaultPosition as PositionSize;
+                    this.x = window.innerWidth / 2 - pos.width / 2;
+                    this.y = window.innerHeight / 2 - pos.height / 2;
                     this.width = pos.width;
                     this.height = pos.height;
                 }
@@ -93,28 +95,21 @@ export class ALOSWindow extends ALOSWindowPosition {
         switch (this.task.config.defaultPositionType) {
             case "pos":
                 return {
-                    left: this.x,
-                    top: this.y,
-                    right: this.right,
-                    bottom: this.bottom,
-                    zIndex: this.zIndex
-                };
-            case "posSize":
-                return {
-                    left: this.x,
-                    top: this.y,
-                    width: this.width,
-                    height: this.height,
+                    left: `${this.x}px`,
+                    top: `${this.y}px`,
+                    right: `${this.right}px`,
+                    bottom: `${this.bottom}px`,
                     zIndex: this.zIndex
                 };
             case "size":
+            case "posSize":
                 return {
-                    left: window.innerWidth / 2 - this.width / 2,
-                    top: window.innerHeight / 2 - this.height / 2,
-                    width: this.width,
-                    height: this.height,
+                    left: `${this.x}px`,
+                    top: `${this.y}px`,
+                    width: `${this.width}px`,
+                    height: `${this.height}px`,
                     zIndex: this.zIndex
-                }
+                };
         }
     }
 
@@ -127,13 +122,24 @@ class WindowsManage extends Listener<ListenerEvent<WindowsManageEventType, Task>
     windowTasks: Set<Task>;
     dockElemMap: PIDMap<DockElem>;
     alosWindowMap: PIDMap<ALOSWindow>;
+    commonlyPackage: Map<PackageID, AppDescription>;
 
     constructor() {
         super();
         this.windowTasks = reactive(new Set());
         this.dockElemMap = reactive(new Map());
         this.alosWindowMap = reactive(new Map());
+        this.commonlyPackage = reactive(new Map());
         osTaskManage.addListener(this.onTaskManageEvent);
+        this.addPackage(starterPackageDescription);
+    }
+
+    addPackage = (appDescription: AppDescription) => {
+        this.commonlyPackage.set(appDescription.packageID, appDescription);
+    }
+
+    delPackage = (appDescription: AppDescription) => {
+        this.commonlyPackage.delete(appDescription.packageID);
     }
 
     windowToTopLayer = (alosWindow: ALOSWindow) => {
@@ -141,23 +147,24 @@ class WindowsManage extends Listener<ListenerEvent<WindowsManageEventType, Task>
         // * window
         {
             const alosWindowList = Array.from(this.alosWindowMap.values()).filter(e => e.task.config.defaultZIndex == "window");
-            alosWindow.zIndex = alosWindowList.length;
+            if (alosWindow.task.config.defaultZIndex == "window") {
+                alosWindow.zIndex = alosWindowList.length;
+            }
             alosWindowList.sort((a, b) => a.zIndex - b.zIndex);
             alosWindowList.forEach((v, i) => {
                 v.zIndex = i;
+                console.log(alosWindowList.map(e => e.zIndex));
             });
         }
 
         // * layout fill 
         {
             const alosWindowList = Array.from(this.alosWindowMap.values()).filter(e => e.task.config.defaultZIndex == "layoutFill");
-            alosWindow.zIndex = alosWindowList.length;
             alosWindowList.sort((a, b) => a.zIndex - b.zIndex);
             alosWindowList.forEach((v, i) => {
                 v.zIndex = topFloorZIndex + 1 + i;
             });
         }
-
     }
 
     windowToFullScreen = (alosWindow: ALOSWindow) => {
@@ -235,5 +242,4 @@ export enum WindowMode {
     frame = "frame",
     component = "component",
 }
-
 export const windowsManage = new WindowsManage();

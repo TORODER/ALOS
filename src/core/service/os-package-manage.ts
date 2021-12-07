@@ -27,5 +27,3 @@ class OSPackageManage {
 
 export const osPackageManage = new OSPackageManage();
 
-osPackageManage.register(osPackageDescription)
-osPackageManage.register(blogPackageDescription)

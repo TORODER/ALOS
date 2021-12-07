@@ -1,13 +1,13 @@
 <template>
-    <div class="start">
-        <div class="app-box">
+    <div class="start" @click="startApp(undefined)">
+        <div class="app-box" >
             <div
                 v-for="appDescription in appDescriptions"
                 :key="appDescription.packageID"
                 class="app"
             >
                 <img
-                    @click="startApp(appDescription.packageID)"
+                    @click.stop="startApp(appDescription.packageID)"
                     :src="osPackageManage.getAppDescription(appDescription.packageID)!.icon.taskbar"
                 />
             </div>
@@ -22,13 +22,15 @@ import { osTaskManage, OSTaskBuilder } from '../../service/os-task-manage';
 const appDescriptions = osPackageManage.getALLAppDescription();
 const { pid } = defineProps<{ pid: string }>();
 console.log("pid:", pid);
-function startApp(packageID: string) {
-    const appDescription = osPackageManage.getAppDescription(packageID);
-    if (appDescription) {
-        osTaskManage.remove(pid);
-        const windowTask = OSTaskBuilder.createWindowTask(appDescription, "default");
-        if (windowTask) osTaskManage.addTask(windowTask);
+function startApp(packageID: string | undefined) {
+    if (packageID) {
+        const appDescription = osPackageManage.getAppDescription(packageID);
+        if (appDescription) {
+            const windowTask = OSTaskBuilder.createWindowTask(appDescription, "default");
+            if (windowTask) osTaskManage.addTask(windowTask);
+        }
     }
+    osTaskManage.remove(pid);
 }
 </script>
 <style lang="scss">

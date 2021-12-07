@@ -24,6 +24,23 @@
                         <transition-group name="taskbarTaskTransition">
                             <div
                                 class="task"
+                                v-for="[packageID, appDescription] in commonlyPackage"
+                                :key="packageID"
+                                @click="startApp(appDescription)"
+                                :style="(taskStyle as any)"
+                            >
+                                <img
+                                    :src="osPackageManage.getAppDescription(packageID)!.icon.taskbar"
+                                />
+                            </div>
+                        </transition-group>
+                        <div
+                            class="separation"
+                            v-show="Array.from(dockElemMap.values()).length > 0"
+                        ></div>
+                        <transition-group name="taskbarTaskTransition">
+                            <div
+                                class="task"
                                 v-for="[dockElemKey, dockElem] in dockElemMap"
                                 :key="dockElem.task.pid"
                                 :ref="(e) => handelTaskDoms(e as any, dockElem.task)"
@@ -55,11 +72,12 @@
 import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { osPackageManage } from '../core/service/os-package-manage';
 import { windowsManage, WindowsManageEventType } from '../core/service/window-manage';
-import { imagePath } from '../public';
 import OSWindowsLayer from "../components/OSWindowsLayer.vue"
 import { late, lateDuration } from '../core/utils/async';
 import { ListenerEvent } from '../core/listener';
 import { osSettingManage } from "../core/service/os-setting-manage";
+import { OSTaskBuilder, osTaskManage } from '../core/service/os-task-manage';
+
 const osDesktopBackround = osSettingManage.desktopBackground;
 const dockElemMap = windowsManage.dockElemMap;
 const scaleMax = .28;
@@ -69,7 +87,15 @@ const taskBarLeft = ref<number | undefined>(undefined);
 const taskBarWidth = ref<number | undefined>(undefined);
 const taskDoms: PIDMap<Element> = new Map();
 const taskStyle = { "--duration": 300 };
+const commonlyPackage = windowsManage.commonlyPackage;
+const handelWindowResize = lateDuration(() => relayoutTaskBar(), 150);
 
+function startApp(appDescription: AppDescription) {
+    const windowConfig = OSTaskBuilder.createWindowTask(appDescription, "default");
+    if (windowConfig) {
+        osTaskManage.addTask(windowConfig);
+    }
+}
 function handelTaskDoms(dom: Element | null, task: Task) {
     if (dom != null) {
         taskDoms.set(task.pid, dom);
@@ -118,7 +144,6 @@ function handelWindowManageEvent(event: ListenerEvent<WindowsManageEventType, Ta
     }
 }
 
-const handelWindowResize = lateDuration(() => relayoutTaskBar(), 150);
 
 onMounted(() => {
     relayoutTaskBar();
@@ -159,6 +184,14 @@ $taskMarginBottom: 10px;
 }
 
 .desktop-box {
+    .separation {
+        margin: 5px 0;
+        width: 1.5px;
+        position: relative;
+        z-index: 10;
+        border-radius: 20px;
+        background-color: #fff5;
+    }
     & > .background-image {
         @include position-fixed-fill;
         @include desktop-background;

@@ -7,10 +7,13 @@ import { OSTaskBuilder, osTaskManage, TaskType } from "./core/service/os-task-ma
 import { late } from "./core/utils/async";
 import { blogPackageDescription } from "./core/package/blog.package";
 import { starterPackageDescription } from "./core/package/starter.package";
+import { osPackageManage } from "./core/service/os-package-manage";
+import { osPackageDescription } from "./core/package/os.package";
 
 axios.defaults.withCredentials = true
 
 createApp(Root).use(router).mount("#app");
 
-late(() => osTaskManage.addTask(OSTaskBuilder.createWindowFrameTask(blogPackageDescription, blogPackageDescription.framePageIndex.default)));
-late(() => osTaskManage.addTask(OSTaskBuilder.createWindowComponentTask(starterPackageDescription, starterPackageDescription.componentPageIndex.default)));
+osPackageManage.register(osPackageDescription)
+osPackageManage.register(blogPackageDescription)
+osPackageManage.register(starterPackageDescription);

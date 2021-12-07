@@ -3,14 +3,14 @@ import start from "./starter/Starter.vue";
 
 export const starterPackageDescription: ComponentAppDescription = {
     "icon": {
-        "logo": "/public/images/vue.png",
-        "taskbar": "/public/images/vue.png",
+        "logo": "/public/images/starter.png",
+        "taskbar": "/public/images/starter.png",
     },
     "name": {
         "EN": "ALOS",
         "ZH_CN": "ALOS"
     },
-    "packageID": "dev.alos",
+    "packageID": "dev.alos.starter",
     componentPageIndex: {
         "default": {
             "component": shallowRef(start as DefineComponent),

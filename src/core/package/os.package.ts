@@ -8,7 +8,7 @@ export const osPackageDescription: FrameAppDescription = {
         "EN": "ALOS",
         "ZH_CN": "ALOS"
     },
-    "packageID": "dev.alos",
+    "packageID": "dev.alos.os",
     framePageIndex: {
         "default": {
             "startUrl": "https://www.bing.com/?mkt=zh-CN",
