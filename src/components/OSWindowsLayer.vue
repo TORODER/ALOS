@@ -25,7 +25,6 @@
                         @click="(e) => handelFullScreenWindow(value)"
                     ></div>
                 </div>
-
                 <div v-if="value.task.windowMode == WindowMode.frame" class="alos-window-frame">
                     <iframe :src="(value.task.config as WindowFrameModeConfig).startUrl"></iframe>
                     <div
@@ -118,6 +117,7 @@ function handelUpWindow(event: MouseEvent) {
 }
 
 function handelDownWindow(event: MouseEvent, alosWindow: ALOSWindow, mstate: MouseConState | undefined) {
+    console.log(arguments);
     windowsManage.windowToTopLayer(alosWindow);
     (activeALOSWindow.value as ALOSWindow) = alosWindow;
     if (mstate != undefined) {

@@ -94,7 +94,6 @@ export namespace OSTaskBuilder {
         };
     }
 
-
     export const createWindowComponentTask = (appDescription: AppDescription, componentConfig: WindowComponentModeConfig): WindowComponentTask => {
         componentConfig.component = componentConfig.component
         return {
@@ -111,8 +110,8 @@ export namespace OSTaskBuilder {
             const fAppD = appDescription as FrameAppDescription;
             return createWindowFrameTask(fAppD, fAppD.framePageIndex[index]);
         } else if ((appDescription as any).componentPageIndex != undefined) {
-            const fAppD = appDescription as ComponentAppDescription;
-            return createWindowComponentTask(fAppD, fAppD.componentPageIndex[index]);
+            const cAppD = appDescription as ComponentAppDescription;
+            return createWindowComponentTask(cAppD, cAppD.componentPageIndex[index]);
         }
     }
 

@@ -7,6 +7,7 @@
                 class="app"
             >
                 <img
+                    @click="startApp(appDescription.packageID)"
                     :src="osPackageManage.getAppDescription(appDescription.packageID)!.icon.taskbar"
                 />
             </div>
@@ -22,10 +23,12 @@ const appDescriptions = osPackageManage.getALLAppDescription();
 const { pid } = defineProps<{ pid: string }>();
 console.log("pid:", pid);
 function startApp(packageID: string) {
-    const appDescription=osPackageManage.getAppDescription(packageID);
-    
-    osTaskManage.remove(pid);
-    // osTaskManage.addTask()
+    const appDescription = osPackageManage.getAppDescription(packageID);
+    if (appDescription) {
+        osTaskManage.remove(pid);
+        const windowTask = OSTaskBuilder.createWindowTask(appDescription, "default");
+        if (windowTask) osTaskManage.addTask(windowTask);
+    }
 }
 </script>
 <style lang="scss">
