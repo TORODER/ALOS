@@ -67,8 +67,9 @@ function startApp(packageID: string | undefined) {
                 }
             }
             .name{
-                margin: 6px;
+                margin: 8px;
                 color: #fff;
+                font-size: 14px;
             }
         }
     }

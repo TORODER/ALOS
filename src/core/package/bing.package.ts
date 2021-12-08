@@ -1,5 +1,5 @@
 
-// * Blog Web Package 
+// * Bing Web Package 
 export const bingPackageDescription: FrameAppDescription = {
     "icon": {
         "logo": "/public/images/bing.png",
