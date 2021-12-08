@@ -7,8 +7,8 @@ export const starterPackageDescription: ComponentAppDescription = {
         "taskbar": "/public/images/starter.png",
     },
     "name": {
-        "EN": "ALOS",
-        "ZH_CN": "ALOS"
+        "EN": "Starter",
+        "ZH_CN": "启动器"
     },
     "packageID": "dev.alos.starter",
     componentPageIndex: {

@@ -1,6 +1,6 @@
 <template>
     <div class="start" @click="startApp(undefined)">
-        <div class="app-box" >
+        <div class="app-box">
             <div
                 v-for="appDescription in appDescriptions"
                 :key="appDescription.packageID"
@@ -10,6 +10,11 @@
                     @click.stop="startApp(appDescription.packageID)"
                     :src="osPackageManage.getAppDescription(appDescription.packageID)!.icon.taskbar"
                 />
+                <div class="name">
+                    {{
+                        getLocalLanguage(appDescription.name)
+                    }}
+                </div>
             </div>
         </div>
     </div>
@@ -17,6 +22,7 @@
 
 
 <script lang="ts" setup>
+import { getLocalLanguage } from '../../language';
 import { osPackageManage } from '../../service/os-package-manage';
 import { osTaskManage, OSTaskBuilder } from '../../service/os-task-manage';
 const appDescriptions = osPackageManage.getALLAppDescription();
@@ -49,6 +55,7 @@ function startApp(packageID: string | undefined) {
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-direction: column;
             img {
                 width: 100px;
                 height: 100px;
@@ -58,6 +65,10 @@ function startApp(packageID: string | undefined) {
                     transform: scale(1.2);
                     filter: drop-shadow(0 0 10px #0002);
                 }
+            }
+            .name{
+                margin: 6px;
+                color: #fff;
             }
         }
     }

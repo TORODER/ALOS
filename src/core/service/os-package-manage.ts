@@ -1,6 +1,4 @@
 import { WarnAppPackage } from "../debug/warn";
-import { blogPackageDescription } from "../package/blog.package";
-import { osPackageDescription } from "../package/os.package";
 
 class OSPackageManage {
     private packageMap: Map<PackageID, AppDescription>;

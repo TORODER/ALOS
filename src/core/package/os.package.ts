@@ -11,7 +11,7 @@ export const osPackageDescription: FrameAppDescription = {
     "packageID": "dev.alos.os",
     framePageIndex: {
         "default": {
-            "startUrl": "https://www.bing.com/?mkt=zh-CN",
+            "startUrl": ".",
             showWindowBorder: true,
             showWindowStateBar: true,
             defaultPositionType: "size",

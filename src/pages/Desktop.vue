@@ -37,6 +37,7 @@
                         <div
                             class="separation"
                             v-show="Array.from(dockElemMap.values()).length > 0"
+                            :ref="(e) => separationElem = (e as any)"
                         ></div>
                         <transition-group name="taskbarTaskTransition">
                             <div
@@ -51,7 +52,7 @@
                                     :style="{
                                         transform: `scale(${1 + dockElem.scale * scaleMax}) translateZ(0) translateY(${dockElem.scale * translateYMax}px)`
                                     }"
-                                    :src="osPackageManage.getAppDescription(dockElem.task.packageID)!.icon.taskbar"
+                                    :src="osPackageManage.getAppDescription(dockElem.task!.packageID)!.icon.taskbar"
                                 />
                                 <div class="presence-indicator"></div>
                             </div>
@@ -69,7 +70,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { onMounted, onUnmounted, reactive, Ref, ref, watch } from 'vue';
 import { osPackageManage } from '../core/service/os-package-manage';
 import { windowsManage, WindowsManageEventType } from '../core/service/window-manage';
 import OSWindowsLayer from "../components/OSWindowsLayer.vue"
@@ -89,7 +90,7 @@ const taskDoms: PIDMap<Element> = new Map();
 const taskStyle = { "--duration": 300 };
 const commonlyPackage = windowsManage.commonlyPackage;
 const handelWindowResize = lateDuration(() => relayoutTaskBar(), 150);
-
+let separationElem = ref<Element | undefined>();
 function startApp(appDescription: AppDescription) {
     const windowConfig = OSTaskBuilder.createWindowTask(appDescription, "default");
     if (windowConfig) {
@@ -105,6 +106,17 @@ function handelTaskDoms(dom: Element | null, task: Task) {
 }
 
 function taskbarMoveAnimation(e: MouseEvent | undefined) {
+    const sRect = separationElem.value?.getBoundingClientRect();
+    console.log(sRect, e?.x);
+    if (sRect != undefined && e != undefined && e.x < sRect.left) {
+        for (const [pid, elem] of taskDoms) {
+            const domElem = windowsManage.dockElemMap.get(pid);
+            if (domElem != undefined) {
+                domElem.scale = 0;
+            }
+        }
+        return;
+    }
     for (const [pid, elem] of taskDoms) {
         const domElem = windowsManage.dockElemMap.get(pid);
         if (domElem == undefined) continue;
@@ -171,6 +183,7 @@ $taskSize: 48px;
 $taskbarHeight: $taskSize + $taskBarMarginBottom * 2;
 $taskMarginBottom: 10px;
 
+.taskbarTaskTransition-enter-active,
 .taskbarTaskTransition-leave-active {
     transition: all none ease !important;
     .task {
@@ -180,6 +193,10 @@ $taskMarginBottom: 10px;
 
 .taskbarTaskTransition-leave-to {
     transform: scale(0.3);
+    opacity: 0;
+}
+.taskbarTaskTransition-enter-from {
+    transform: scale(1.5);
     opacity: 0;
 }
 

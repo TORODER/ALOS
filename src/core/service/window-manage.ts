@@ -38,6 +38,7 @@ export class ALOSWindowPosition implements ALOSWindowPositionAttr {
         this.zIndex = index ?? defZindex;
         this.bottom = bottom;
         this.right = right;
+
     }
     copyPositionAttr = (): ALOSWindowPositionAttr => {
         return Object.assign({}, this);
