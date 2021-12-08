@@ -6,65 +6,29 @@
                 'background-image': `url('${backgroundImage}')`
             }"
         ></div>
-        <div class="login-content">
-            <div class="user-image">
-                <img :src="userImage" alt="user image" />
-            </div>
-            <div class="space big"></div>
-            <div class="input-box" :class="[showPassword ? 'lock' : '']">
-                <input v-model="account" type="text" placeholder="账号" />
-            </div>
-            <div class="space small"></div>
-            <div class="input-box" :class="[showPassword ? 'show' : 'noshow']">
-                <input type="text" placeholder="密码" />
-            </div>
-            <div class="space big"></div>
-            <div class="next-button" @click="toOS">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="icon icon-tabler icon-tabler-arrow-narrow-right"
-                    width="44"
-                    height="44"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                >
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                    <line x1="15" y1="16" x2="19" y2="12" />
-                    <line x1="15" y1="8" x2="19" y2="12" />
-                </svg>
-            </div>
-            <div class="space big"></div>
-        </div>
+        <router-view name="LoginMainView"></router-view>
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from '@vue/reactivity';
-import { watch } from '@vue/runtime-core';
-import { useRouter } from 'vue-router';
+import { userManage } from '../core/service/user-manage';
 import { imagePath } from '../public';
+import { toDesktop, toSignIn } from '../router';
 const backgroundImage = ref(`${imagePath}background.jpg`);
-const userImage = ref(`${imagePath}user-image.jpg`);
-const account = ref("");
-let showPassword = ref(false);
-const router = useRouter();
-watch([account], ([account]) => {
-    showPassword.value = account.length > 0;
-});
 
-function toOS() {
-    router.push("/desktop");
+if (userManage.loginUser.value != undefined) {
+    toDesktop();
+} else {
+    toSignIn();
 }
 
 </script>
 
 <style lang="scss" scoped>
-@import "/src/scss/utils/space.scss";
+@import "/src/scss/space.scss";
 @import "/src/scss/utils/mixin/center.scss";
-@import "/src/scss/utils/mixin/shadow.scss";
+@import "/src/scss/utils/mixin/shadow-border.scss";
 @import "/src/scss/utils/mixin/position.scss";
 @import "/src/scss/background.scss";
 .login-box {
@@ -75,7 +39,6 @@ function toOS() {
         @include position-fixed-fill;
         @include desktop-background;
         z-index: 1;
-        background-size: cover;
     }
     & > .login-content {
         display: flex;

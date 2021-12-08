@@ -1,5 +1,5 @@
-let pidAcc = 0;
+import { buildUUID } from "./utils/easy-uuid";
 
 export function buildPID(appDescription: AppDescription) {
-    return `${appDescription.packageID}-${pidAcc++}`;
+    return buildUUID(`${appDescription.packageID}_pid`);
 }

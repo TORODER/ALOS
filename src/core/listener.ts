@@ -1,6 +1,9 @@
+import { late } from "./utils/async";
+
 interface ListenerNotice<T> {
     (value: T): void
 }
+
 export class Listener<T>{
     private listeners: Set<ListenerNotice<T>>
 
@@ -9,9 +12,11 @@ export class Listener<T>{
     }
 
     pushNotice(value: T) {
-        for (const listenerNotice of this.listeners.values()) {
-            listenerNotice(value);
-        }
+        late(() => {
+            for (const listenerNotice of this.listeners.values()) {
+                listenerNotice(value);
+            }
+        })
     }
 
     addListener(listenerNotice: ListenerNotice<T>) {
@@ -32,8 +37,7 @@ export class Listener<T>{
 
 }
 
-
-export class ListenerEvent<E,T>{
+export class ListenerEvent<E, T>{
     event: E;
     data: T;
     constructor(event: E, data: T) {

@@ -3,102 +3,212 @@
         <div
             class="background-image"
             :style="{
-                'background-image': `url('${backgroundImage}')`
+                'background-image': `url('${osDesktopBackround}')`
             }"
         ></div>
-        <div class="desktop-windows-container"></div>
-        <div class="desktop-system-ui-box">
-            <div class="taskbar-box">
-                <div class="taskbar-content" @mousemove="taskbarMoveAnimation">
+        <div class="desktop-windows-container">
+            <OSWindowsLayer />
+            <div
+                class="taskbar-box"
+                :ref="(refElem) => taskBarRef = refElem"
+                :style="{
+                    left: taskBarLeft == undefined ? `50%` : `${taskBarLeft}px`,
+                }"
+            >
+                <div
+                    class="taskbar-content"
+                    @mousemove="taskbarMoveAnimation"
+                    @mouseleave.self="taskbarMoveAnimation(undefined)"
+                >
                     <div class="task-row">
+                        <transition-group name="taskbarTaskTransition">
+                            <div
+                                class="task"
+                                v-for="[packageID, appDescription] in commonlyPackage"
+                                :key="packageID"
+                                @click="startApp(appDescription)"
+                                :style="(taskStyle as any)"
+                            >
+                                <img
+                                    :src="osPackageManage.getAppDescription(packageID)!.icon.taskbar"
+                                />
+                            </div>
+                        </transition-group>
                         <div
-                            class="task"
-                            :ref="(dom) => {
-                                console.log(dom);
-                                taskDoms[value.pid] = dom;
-                            }"
-                            :index="value.pid"
-                            v-for="value in windowTasks"
-                        >
-                            <img :src="appDescriptionMap.get(value.packageID)!.icon.taskbar" />
-                        </div>
+                            class="separation"
+                            v-show="Array.from(dockElemMap.values()).length > 0"
+                            :ref="(e) => separationElem = (e as any)"
+                        ></div>
+                        <transition-group name="taskbarTaskTransition">
+                            <div
+                                class="task"
+                                v-for="[dockElemKey, dockElem] in dockElemMap"
+                                :key="dockElem.task.pid"
+                                :ref="(e) => handelTaskDoms(e as any, dockElem.task)"
+                                @click="() => handelOnClickTaskbarTask(dockElem.task.pid)"
+                                :style="(taskStyle as any)"
+                            >
+                                <img
+                                    :style="{
+                                        transform: `scale(${1 + dockElem.scale * scaleMax}) translateZ(0) translateY(${dockElem.scale * translateYMax}px)`
+                                    }"
+                                    :src="osPackageManage.getAppDescription(dockElem.task!.packageID)!.icon.taskbar"
+                                />
+                                <div class="presence-indicator"></div>
+                            </div>
+                        </transition-group>
                     </div>
-                    <div class="taskbar"></div>
+                    <div
+                        class="taskbar"
+                        :style="{
+                            width: taskBarWidth == undefined ? `0px` : `${taskBarWidth}px`
+                        }"
+                    ></div>
                 </div>
             </div>
         </div>
     </div>
 </template>
-
-<script setup lang="ts" >
-import { reactive, ref } from 'vue';
-import { Task } from '../@types/task';
+<script setup lang="ts">
+import { onMounted, onUnmounted, reactive, Ref, ref, watch } from 'vue';
+import { osPackageManage } from '../core/service/os-package-manage';
+import { windowsManage, WindowsManageEventType } from '../core/service/window-manage';
+import OSWindowsLayer from "../components/OSWindowsLayer.vue"
+import { late, lateDuration } from '../core/utils/async';
 import { ListenerEvent } from '../core/listener';
-import { taskManage, TaskManageEvent, TaskType } from '../core/task';
-import { imagePath } from '../public';
-const backgroundImage = ref(`${imagePath}background.jpg`);
+import { osSettingManage } from "../core/service/os-setting-manage";
+import { OSTaskBuilder, osTaskManage } from '../core/service/os-task-manage';
 
-const appDescriptions: AppDescription[] = [
-    {
-        "icon": {
-            "taskbar": "/public/images/nodejs.png",
-        },
-        "name": {
-            "EN": "NodeJS",
-        },
-        "packageID": "com.nodejs"
-    },
-    {
-        "icon": {
-            "taskbar": "/public/images/vue.png",
-        },
-        "name": {
-            "EN": "Vue",
-        },
-        "packageID": "com.vue"
+const osDesktopBackround = osSettingManage.desktopBackground;
+const dockElemMap = windowsManage.dockElemMap;
+const scaleMax = .28;
+const translateYMax = -12;
+const taskBarRef = ref();
+const taskBarLeft = ref<number | undefined>(undefined);
+const taskBarWidth = ref<number | undefined>(undefined);
+const taskDoms: PIDMap<Element> = new Map();
+const taskStyle = { "--duration": 300 };
+const commonlyPackage = windowsManage.commonlyPackage;
+const handelWindowResize = lateDuration(() => relayoutTaskBar(), 150);
+let separationElem = ref<Element | undefined>();
+function startApp(appDescription: AppDescription) {
+    const windowConfig = OSTaskBuilder.createWindowTask(appDescription, "default");
+    if (windowConfig) {
+        osTaskManage.addTask(windowConfig);
     }
-];
-const appDescriptionMap: Map<string, AppDescription> = new Map(appDescriptions.map(e => [e.packageID, e]));
+}
+function handelTaskDoms(dom: Element | null, task: Task) {
+    if (dom != null) {
+        taskDoms.set(task.pid, dom);
+    } else {
+        taskDoms.delete(task.pid);
+    }
+}
 
-appDescriptions.forEach((v, i) => {
-    setTimeout(() => {
-        taskManage.create(v, TaskType.window);
-        console.log("add");
-    }, i * 3000);
-});
+function taskbarMoveAnimation(e: MouseEvent | undefined) {
+    const sRect = separationElem.value?.getBoundingClientRect();
+    console.log(sRect, e?.x);
+    if (sRect != undefined && e != undefined && e.x < sRect.left) {
+        for (const [pid, elem] of taskDoms) {
+            const domElem = windowsManage.dockElemMap.get(pid);
+            if (domElem != undefined) {
+                domElem.scale = 0;
+            }
+        }
+        return;
+    }
+    for (const [pid, elem] of taskDoms) {
+        const domElem = windowsManage.dockElemMap.get(pid);
+        if (domElem == undefined) continue;
+        if (e != undefined) {
+            const domRect = elem.getBoundingClientRect();
+            const centerOffset = domRect.left + domRect.width / 2;
+            domElem.scale = Math.max(1 - Math.abs((centerOffset - e.x) / 160), 0);
+        } else {
+            domElem.scale = 0;
+        }
+    }
+}
 
-const windowTasks: Set<Task> = reactive(new Set());
-function onTaskManageEvent(v: ListenerEvent<TaskManageEvent, Task>) {
-    switch (v.event) {
-        case TaskManageEvent.add:
-            console.log("add", v.data);
-            windowTasks.add(v.data);
+function relayoutTaskBar() {
+    const getTaskBarWidth = (taskBarRef.value as Element).clientWidth;
+    const left = (window.innerWidth - getTaskBarWidth) / 2;
+    taskBarWidth.value = getTaskBarWidth;
+    taskBarLeft.value = left;
+}
+
+function handelOnClickTaskbarTask(pid: string) {
+    const setToTopWindow = windowsManage.alosWindowMap.get(pid);
+    if (setToTopWindow != undefined) {
+        windowsManage.windowToTopLayer(setToTopWindow);
+    }
+}
+
+function handelWindowManageEvent(event: ListenerEvent<WindowsManageEventType, Task>) {
+    switch (event.event) {
+        case WindowsManageEventType.add:
+            relayoutTaskBar();
+            break;
+        case WindowsManageEventType.del:
+            late(() => relayoutTaskBar(), taskStyle['--duration'] + 10);
+            late(() => relayoutTaskBar(), taskStyle['--duration'] + 200);
             break;
     }
 }
-taskManage.addListener(onTaskManageEvent);
 
-const taskDoms: Record<string, any> = {};
 
-function taskbarMoveAnimation(e: MouseEvent) {
-    // console.log(e.offsetX, e.offsetY);
-    // console.log(taskDoms, taskDoms.map(e => [e.offsetLeft, e.offsetTop]));
-}
-
+onMounted(() => {
+    relayoutTaskBar();
+    windowsManage.addListener(handelWindowManageEvent)
+    window.addEventListener("resize", handelWindowResize);
+})
+onUnmounted(() => {
+    windowsManage.removeListener(handelWindowManageEvent)
+    window.removeEventListener("resize", handelWindowResize);
+});
 </script>
 
 <style scoped lang="scss" >
-@import "/src/scss/utils/space.scss";
+@import "/src/scss/utils/var/var.scss";
+@import "/src/scss/space.scss";
 @import "/src/scss/utils/mixin/center.scss";
-@import "/src/scss/utils/mixin/shadow.scss";
+@import "/src/scss/utils/mixin/shadow-border.scss";
 @import "/src/scss/utils/mixin/position.scss";
+@import "/src/scss/utils/mixin/fix.scss";
 @import "/src/scss/background.scss";
+@import "/src/scss/utils/var/var.scss";
 
-$taskbarHeight: 20px;
 $taskBarMarginBottom: 10px;
-$taskSize: 60px;
+$taskSize: 48px;
+$taskbarHeight: $taskSize + $taskBarMarginBottom * 2;
 $taskMarginBottom: 10px;
+
+.taskbarTaskTransition-enter-active,
+.taskbarTaskTransition-leave-active {
+    transition: all none ease !important;
+    .task {
+        transition-duration: var(--duration) !important;
+    }
+}
+
+.taskbarTaskTransition-leave-to {
+    transform: scale(0.3);
+    opacity: 0;
+}
+.taskbarTaskTransition-enter-from {
+    transform: scale(1.5);
+    opacity: 0;
+}
+
 .desktop-box {
+    .separation {
+        margin: 5px 0;
+        width: 1.5px;
+        position: relative;
+        z-index: 10;
+        border-radius: 20px;
+        background-color: #fff5;
+    }
     & > .background-image {
         @include position-fixed-fill;
         @include desktop-background;
@@ -106,29 +216,26 @@ $taskMarginBottom: 10px;
     }
     & > .desktop-windows-container {
         @include position-fixed-fill;
-        z-index: 1;
-    }
-    & > .desktop-system-ui-box {
-        @include position-fixed-fill;
         user-select: none;
         z-index: 2;
         & > .taskbar-box {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
             display: flex;
             justify-content: center;
+            bottom: 0;
+            transition: all 0.4s;
+            z-index: $topFloorZIndex;
             .taskbar-content {
                 position: relative;
-                padding: 0 25px;
+                padding: 60px 25px 0;
                 & > .taskbar {
-                    @include shadow-less;
-                    border-radius: 15px;
+                    @include shadow-high;
+                    border-radius: 20px;
                     height: $taskbarHeight;
                     margin-bottom: 10px;
                     border: 1px solid #fff1;
-                    background-color: #fff6;
+                    background-color: #fff4;
+                    backdrop-filter: blur(10px);
                     position: absolute;
                     left: 0;
                     right: 0;
@@ -137,23 +244,40 @@ $taskMarginBottom: 10px;
                 }
                 .task-row {
                     display: flex;
+                    position: relative;
+                    padding-top: 10px;
+                    top: -($taskMarginBottom + $taskBarMarginBottom);
                     & > .task {
-                        @include shadow-less;
-                        // border: 1px solid #fff1;
-                        // backdrop-filter: blur(10px);
-                        // padding: 10px;
-                        filter: drop-shadow(2px 4px 6px #0004);
+                        @include fix-transform-scale;
+                        cursor: pointer;
                         position: relative;
+                        z-index: 1;
+                        filter: drop-shadow(2px 3px 6px #0002);
                         width: $taskSize;
                         height: $taskSize;
-                        border-radius: 15px;
                         margin: 0 10px;
-                        z-index: 1;
-                        top: -($taskMarginBottom + $taskBarMarginBottom);
+                        padding-bottom: 5px;
+                        &:active {
+                            transition-duration: $now;
+                            transition-timing-function: ease;
+                            transform: scale(0.8) !important;
+                        }
                         img {
                             width: 100%;
                             height: 100%;
                             object-fit: contain;
+                            transform-origin: bottom center;
+                            transition: all 0.05s linear;
+                        }
+                        .presence-indicator {
+                            @include shadow-less;
+                            position: absolute;
+                            bottom: -5px;
+                            width: 5px;
+                            height: 5px;
+                            background-color: #fff8;
+                            border-radius: 100%;
+                            left: calc(50% - 2.5px);
                         }
                     }
                 }

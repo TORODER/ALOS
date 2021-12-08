@@ -8,15 +8,13 @@
     },
     "dependencies": {
         "axios": "^0.24.0",
+        "ramda": "^0.27.1",
         "vue": "^3.2.16",
         "vue-router": "^4.0.12"
     },
     "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "^5.4.0",
-        "@typescript-eslint/parser": "^5.4.0",
+        "@types/ramda": "^0.27.58",
         "@vitejs/plugin-vue": "^1.9.3",
-        "eslint": "^8.3.0",
-        "eslint-plugin-vue": "^8.1.1",
         "sass": "^1.43.5",
         "typescript": "^4.4.3",
         "vite": "^2.6.4",
